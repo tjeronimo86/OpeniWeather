@@ -41,7 +41,8 @@ class DebugRenderReceiver : BroadcastReceiver() {
                 WidgetStyle.entries.forEach { style ->
                     save(renderer.render(style, place, weather, style.defaultW, style.defaultH), File(dir, "${style.name}.png"))
                 }
-                DEMO_SCENES.forEachIndexed { i, (_, sky) ->
+                listOf(0, 3, 5, 9).forEach { i ->
+                    val sky = DEMO_SCENES[i].second
                     save(renderer.render(WidgetStyle.SMALL, place, weather, 158, 158, sky), File(dir, "scene$i.png"))
                 }
                 Log.i("WetterDebug", "render done")

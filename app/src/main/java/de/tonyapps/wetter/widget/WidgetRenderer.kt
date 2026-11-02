@@ -256,6 +256,8 @@ class WidgetRenderer(private val context: Context) {
         c.drawRoundRect(rect, barH / 2, barH / 2, fill)
 
         val colors = IntArray(9) { tempColor(low + (high - low) * it / 8.0).toArgb() }
+        // Der Shader erbt die Deckkraft der Paint-Farbe, also vorher auf deckend stellen
+        fill.color = -1
         fill.shader = LinearGradient(x0, 0f, x1, 0f, colors, null, Shader.TileMode.CLAMP)
         val left = x(d.min)
         val right = x(d.max).coerceAtLeast(left + barH)

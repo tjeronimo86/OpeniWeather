@@ -49,8 +49,8 @@ fun DrawScope.drawWeather(kind: Kind, isDay: Boolean, s: Float, phase: Float) {
             cloud(Offset(s * .63f, s * .78f), s * .5f, CLOUD)
         }
         Kind.PARTLY -> {
-            if (isDay) sun(Offset(s * .63f, s * .36f), s * .19f, phase) else moon(Offset(s * .66f, s * .34f), s * .22f)
-            cloud(Offset(s * .46f, s * .7f), s * .78f, CLOUD)
+            if (isDay) sun(Offset(s * .63f, s * .36f), s * .19f, phase) else moon(Offset(s * .7f, s * .28f), s * .25f)
+            cloud(Offset(s * .43f, s * .8f), s * .72f, CLOUD)
         }
         Kind.CLOUDY -> {
             cloud(Offset(s * .6f, s * .55f), s * .66f, CLOUD_DARK)
