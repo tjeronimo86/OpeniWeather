@@ -25,10 +25,10 @@ adb shell am start -n $PKG/.DebugMapActivity
 sleep 25
 shot map-1-radar
 adb shell input tap 950 290
-sleep 12
+sleep 70
 shot map-2-temperatur
 adb shell input tap 950 400
-sleep 12
+sleep 15
 shot map-3-wind
 
 # 3. Widgets als PNG
