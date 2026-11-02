@@ -1,6 +1,12 @@
 package de.tonyapps.wetter.ui
 
 import android.annotation.SuppressLint
+import android.util.Log
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
@@ -41,7 +47,21 @@ fun MapScreen(place: Place, onClose: () -> Unit) {
                     settings.domStorageEnabled = true
                     // Die Seite kommt aus file:// und holt Daten per fetch von den Wetterdiensten.
                     settings.allowUniversalAccessFromFileURLs = true
+                    webChromeClient = object : WebChromeClient() {
+                        override fun onConsoleMessage(message: ConsoleMessage): Boolean {
+                            Log.i("WetterMap", "${message.message()} @${message.lineNumber()}")
+                            return true
+                        }
+                    }
                     webViewClient = object : WebViewClient() {
+                        override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                            Log.w("WetterMap", "Fehler ${error.errorCode} ${error.description}: ${request.url}")
+                        }
+
+                        override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
+                            Log.w("WetterMap", "HTTP ${response.statusCode}: ${request.url}")
+                        }
+
                         override fun onPageFinished(view: WebView, url: String) {
                             val js = String.format(
                                 Locale.US, "start(%.4f,%.4f,%d,%d)", place.lat, place.lon,

@@ -23,6 +23,18 @@ shot app-3-kacheln
 adb shell input swipe 500 1800 500 500 700
 sleep 4
 shot app-4-kacheln
+# Karte: Symbol unten links, dann die drei Ebenen
+adb shell input tap 110 2240
+sleep 18
+shot map-1-radar
+adb shell input tap 950 300
+sleep 10
+shot map-2-temperatur
+adb shell input tap 950 410
+sleep 10
+shot map-3-wind
+adb shell input keyevent KEYCODE_BACK
+sleep 3
 adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_RENDER
 sleep 25
 adb pull /sdcard/Android/data/$PKG/files/widgets "$OUT/widgets"
@@ -39,7 +51,7 @@ python3 tools/ci/tap_add.py "$OUT/ui.xml" | while read -r x y; do adb shell inpu
 sleep 12
 shot home-widget
 
-adb logcat -d -s WetterDebug:* AndroidRuntime:E System.err:W > "$OUT/log.txt"
+adb logcat -d -s WetterDebug:* WetterMap:* AndroidRuntime:E System.err:W > "$OUT/log.txt"
 adb logcat -d | grep -iE "wetter|RemoteViews|TransactionTooLarge" | tail -200 > "$OUT/log-all.txt"
 (cd out && zip -qr verify.zip verify)
 exit 0

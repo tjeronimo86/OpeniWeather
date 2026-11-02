@@ -72,7 +72,10 @@ function start(lat, lon, top = 0, bottom = 0) {
   $('bar').onclick = e => { const r = $('bar').getBoundingClientRect(); pause(); show(Math.round((e.clientX - r.left) / r.width * (frames.length - 1))); };
   addEventListener('resize', fitCanvas);
   fitCanvas();
+  console.log('start', innerWidth, innerHeight, map.getSize().x, map.getSize().y, typeof L);
   loadRadar();
+  // Falls die Seite vor dem ersten Layout startet, kennt Leaflet die echte Groesse noch nicht
+  new ResizeObserver(() => map.invalidateSize()).observe($('map'));
 }
 
 function select(l) {
@@ -98,7 +101,7 @@ async function loadRadar() {
     const d = await r.json();
     frames = d.radar.past.map(f => ({
       time: f.time,
-      layer: L.tileLayer(`${d.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, {maxNativeZoom: 7, maxZoom: 12, opacity: 0, zIndex: 300, crossOrigin: true}).addTo(map)
+      layer: L.tileLayer(`${d.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, {maxNativeZoom: 7, maxZoom: 12, opacity: 0, zIndex: 300}).addTo(map)
     }));
     show(frames.length - 1);
     if (layer === 'rain') play();
