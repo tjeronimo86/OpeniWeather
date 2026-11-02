@@ -1,0 +1,95 @@
+<title>Wetter Himmel-Vorschau</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;500;600&display=swap">
+<style>
+/* Ein Handy auf dunklem Grund, daneben die Szenenwahl. Nur dunkel: Der Himmel soll wirken wie auf dem Display. */
+:root{--ground:#0b0f16;--panel:#151b25;--line:#2a3442;--ink:#f2f5f9;--muted:#9aa7b8;--accent:#58c4ff;--font:Inter,system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--font);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+.wrap{display:flex;gap:32px;justify-content:center;align-items:flex-start;flex-wrap:wrap;max-width:860px;margin:0 auto}
+.phone{position:relative;width:min(100%,360px);aspect-ratio:9/19.5;border-radius:34px;overflow:hidden;background:#123f7d;box-shadow:0 0 0 7px #1d2430}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ui{position:absolute;inset:0;overflow:hidden;padding:44px 14px 0;text-align:center;color:#fff}
+.city{font-size:29px;font-weight:400}
+.temp{font-size:84px;font-weight:200;line-height:1.08}
+.temp i{font-style:normal;visibility:hidden}
+.cond,.hl{font-size:16px;font-weight:500}
+.card{margin-top:24px;text-align:left;border-radius:15px;background:rgba(18,63,125,.34);padding:0 12px 4px}
+.card.grey{background:rgba(58,68,80,.36)}.card.night{background:rgba(10,18,38,.4)}
+.cardtitle{font-size:11px;font-weight:500;letter-spacing:.3px;opacity:.65;padding:10px 0 7px;border-bottom:.5px solid rgba(255,255,255,.22)}
+.row{display:grid;grid-template-columns:48px 1fr 1.05fr 30px;gap:0 8px;align-items:center;height:42px;font-size:15px;font-weight:500;font-variant-numeric:tabular-nums;border-bottom:.5px solid rgba(255,255,255,.14)}
+.row:last-child{border-bottom:0}
+.lo{opacity:.6;text-align:right;grid-column:2}
+.hi{text-align:right}
+.bar{position:relative;height:5px;border-radius:3px;background:rgba(0,0,0,.2)}
+.bar b{position:absolute;top:0;bottom:0;border-radius:3px;transform:scaleX(0);transform-origin:center;animation:grow .8s cubic-bezier(.3,.8,.3,1) forwards}
+.bar u{position:absolute;top:-2px;width:9px;height:9px;margin-left:-4px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.4)}
+@keyframes grow{to{transform:scaleX(1)}}
+aside{flex:1 1 280px;min-width:0;max-width:400px}
+h1{font-size:24px;font-weight:600;margin:6px 0 8px;text-wrap:balance}
+p{color:var(--muted);line-height:1.5;margin:0 0 18px;font-size:14px}
+.scenes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.scenes button{all:unset;cursor:pointer;padding:11px 13px;border-radius:10px;background:var(--panel);border:1px solid var(--line);font-size:14px;font-weight:500}
+.scenes button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.scenes button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.note{margin-top:16px;font-size:13px}
+@media (prefers-reduced-motion:reduce){.bar b{animation:none;transform:none}}
+</style>
+<div class="wrap">
+  <div class="phone">
+    <canvas id="sky"></canvas>
+    <div class="ui">
+      <div class="city">Obertshausen</div>
+      <div class="temp"><i>°</i><span id="t">8</span>°</div>
+      <div class="cond" id="c"></div>
+      <div class="hl">H:11°  T:3°</div>
+      <div class="card" id="card">
+        <div class="cardtitle">10-TAGE-VORHERSAGE</div>
+        <div id="days"></div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <h1>Himmel und Temperaturbalken</h1>
+    <p>Das ist der echte Shader aus der App, hier im Browser gerendert. Beim Szenenwechsel morpht der Himmel wie in der App. Die Tageswerte sind Beispieldaten.</p>
+    <div class="scenes" id="scenes"></div>
+    <p class="note">Bei „Gewitter“ blitzt es alle paar Sekunden. Der Balken zeigt die Spanne des Tages innerhalb aller 10 Tage, der weiße Punkt die aktuelle Temperatur.</p>
+  </aside>
+</div>
+<script id="agsl" type="text/plain">/*SHADER*/</script>
+<script>
+const SCENES=/*SCENES*/;
+const canvas=document.getElementById('sky');
+const gl=canvas.getContext('webgl',{antialias:false});
+const src=document.getElementById('agsl').textContent;
+const stops=[[-12,[142,124,255]],[0,[92,200,250]],[10,[127,227,180]],[18,[184,227,106]],[23,[255,216,74]],[29,[255,166,61]],[36,[242,85,75]]];
+function rgb(t){if(t<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++)if(t<=stops[i][0]){const[a,c]=stops[i-1],[b,d]=stops[i],k=(t-a)/(b-a);return c.map((v,n)=>Math.round(v+(d[n]-v)*k))}return stops[6][1]}
+const days=[['Heute',3,11],['Di',5,12],['Mi',7,13],['Do',4,9],['Fr',1,7],['Sa',-1,6],['So',0,8]];
+const lo=Math.min(...days.map(d=>d[1])),hi=Math.max(...days.map(d=>d[2])),span=hi-lo;
+const g=`linear-gradient(90deg,${[0,1,2,3,4].map(i=>`rgb(${rgb(lo+span*i/4)})`).join(',')})`;
+document.getElementById('days').innerHTML=days.map((d,i)=>{const l=(d[1]-lo)/span*100,w=(d[2]-d[1])/span*100;
+ return `<div class="row"><span>${d[0]}</span><span class="lo">${d[1]}°</span><span class="bar"><b style="left:${l}%;width:${w}%;background:${g};background-size:${100/w*100}% 100%;background-position:${l/(100-w)*100}% 0;animation-delay:${.1+i*.06}s"></b>${i==0?`<u style="left:${(8-lo)/span*100}%"></u>`:''}</span><span class="hi">${d[2]}°</span></div>`}).join('');
+let cur={...Object.values(SCENES)[1]},from=cur,to=cur,mix=1,last=performance.now(),time=41;
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function lerp(a,b,t){const o={};for(const k in a)o[k]=Array.isArray(a[k])?a[k].map((v,i)=>v+(b[k][i]-v)*t):a[k]+(b[k]-a[k])*t;return o}
+const box=document.getElementById('scenes');
+function pick(name){from=cur;to=SCENES[name];mix=0;document.getElementById('c').textContent=name;
+ [...box.children].forEach(b=>b.setAttribute('aria-pressed',b.textContent===name));
+ const c=document.getElementById('card');c.className='card'+(to.uDay<.3?' night':to.uGrey*to.uCloud>.4?' grey':'')}
+Object.keys(SCENES).forEach(n=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.onclick=()=>pick(n);box.append(b)});
+let set=null;
+if(gl){const frag='precision highp float;\n#define half4 vec4\n#define half3 vec3\n'+src.replace('half4 main(vec2 frag) {','vec4 skyMain(vec2 frag) {')+'\nvoid main(){gl_FragColor=skyMain(vec2(gl_FragCoord.x,uRes.y-gl_FragCoord.y));}';
+ const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o};
+ const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}'));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,frag));gl.linkProgram(p);gl.useProgram(p);
+ gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+ const a=gl.getAttribLocation(p,'a');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
+ const loc={};const u=n=>loc[n]??=gl.getUniformLocation(p,n);
+ set=(s,t)=>{gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(u('uRes'),canvas.width,canvas.height);gl.uniform1f(u('uTime'),t);for(const k in s)Array.isArray(s[k])?gl.uniform2f(u(k),s[k][0],s[k][1]):gl.uniform1f(u(k),s[k]);gl.drawArrays(gl.TRIANGLES,0,3)}}
+function size(){const r=canvas.getBoundingClientRect(),k=Math.min(devicePixelRatio||1,2)/1.6;canvas.width=Math.ceil(r.width*k);canvas.height=Math.ceil(r.height*k)}
+addEventListener('resize',size);size();
+pick('Teils bewölkt');mix=1;cur=to;
+function frame(now){const dt=Math.min((now-last)/1000,.1);last=now;if(!reduce)time+=dt;
+ if(mix<1){mix=Math.min(1,mix+dt/1.4);const e=mix*mix*(3-2*mix);cur=lerp(from,to,e)}
+ if(set)set(cur,time);requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script>

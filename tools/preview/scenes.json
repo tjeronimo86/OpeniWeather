@@ -1,0 +1,12 @@
+{
+ "Klar":          {"uCloud":0.0,"uGrey":0.0,"uRain":0,"uSnow":0,"uFog":0,"uStorm":0,"uDay":1,"uDusk":0,"uSun":[0.72,0.13],"uMoon":0.5},
+ "Teils bewölkt": {"uCloud":0.52,"uGrey":0.05,"uRain":0,"uSnow":0,"uFog":0,"uStorm":0,"uDay":1,"uDusk":0,"uSun":[0.72,0.16],"uMoon":0.5},
+ "Bedeckt":       {"uCloud":0.95,"uGrey":0.75,"uRain":0,"uSnow":0,"uFog":0,"uStorm":0,"uDay":1,"uDusk":0,"uSun":[0.5,0.1],"uMoon":0.5},
+ "Regen":         {"uCloud":1.0,"uGrey":0.9,"uRain":0.65,"uSnow":0,"uFog":0,"uStorm":0,"uDay":1,"uDusk":0,"uSun":[0.5,0.1],"uMoon":0.5},
+ "Gewitter":      {"uCloud":1.0,"uGrey":1.0,"uRain":0.95,"uSnow":0,"uFog":0,"uStorm":1,"uDay":0.45,"uDusk":0,"uSun":[0.5,0.1],"uMoon":0.5},
+ "Schnee":        {"uCloud":1.0,"uGrey":0.6,"uRain":0,"uSnow":0.75,"uFog":0,"uStorm":0,"uDay":1,"uDusk":0,"uSun":[0.5,0.1],"uMoon":0.5},
+ "Nebel":         {"uCloud":0.7,"uGrey":0.6,"uRain":0,"uSnow":0,"uFog":0.85,"uStorm":0,"uDay":1,"uDusk":0,"uSun":[0.5,0.2],"uMoon":0.5},
+ "Klare Nacht":   {"uCloud":0.08,"uGrey":0.1,"uRain":0,"uSnow":0,"uFog":0,"uStorm":0,"uDay":0,"uDusk":0,"uSun":[0.7,0.13],"uMoon":0.36},
+ "Bewölkte Nacht":{"uCloud":0.62,"uGrey":0.4,"uRain":0,"uSnow":0,"uFog":0,"uStorm":0,"uDay":0,"uDusk":0,"uSun":[0.28,0.14],"uMoon":0.5},
+ "Sonnenuntergang":{"uCloud":0.42,"uGrey":0.05,"uRain":0,"uSnow":0,"uFog":0,"uStorm":0,"uDay":0.72,"uDusk":0.9,"uSun":[0.3,0.62],"uMoon":0.5}
+}
