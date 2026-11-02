@@ -27,7 +27,8 @@
   .me{width:16px;height:16px;border-radius:50%;background:#0a84ff;border:3px solid #fff;box-sizing:border-box;box-shadow:0 0 0 8px rgba(10,132,255,.22);animation:pulse 2.4s ease-out infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(10,132,255,.5)}100%{box-shadow:0 0 0 22px rgba(10,132,255,0)}}
   #wind{position:fixed;inset:0;z-index:450;pointer-events:none}
-  .leaflet-container{background:#0b1c33}
+  .leaflet-container{background:#dfe6ec}
+  .base{filter:saturate(.55) brightness(1.03)}
   .leaflet-control-attribution{font-size:9px;background:rgba(0,0,0,.4)!important;color:#ddd}
   .leaflet-control-attribution a{color:#ddd}
 </style>
@@ -61,9 +62,11 @@ function start(lat, lon, top = 0, bottom = 0) {
   $('timeline').style.bottom = $('legend').style.bottom = (bottom + 22) + 'px';
   map = L.map('map', {zoomControl: false, attributionControl: true, maxZoom: 12, minZoom: 3, zoomSnap: .5}).setView([lat, lon], 7);
   map.attributionControl.setPrefix(false);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    subdomains: 'abcd', maxZoom: 12,
-    attribution: '© OpenStreetMap, © CARTO, RainViewer, Open-Meteo'
+  // CARTO verlangt inzwischen einen Schluessel. OSM geht ohne, erwartet aber eine eindeutige
+  // Kennung der App: Die setzt MapScreen als User-Agent.
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 12, className: 'base',
+    attribution: '© OpenStreetMap, RainViewer, Open-Meteo'
   }).addTo(map);
   me = L.marker([lat, lon], {interactive: false, icon: L.divIcon({className: '', html: '<div class="me"></div>', iconSize: [16, 16]})}).addTo(map);
   map.on('moveend', () => { if (layer !== 'rain') scheduleGrid(); });

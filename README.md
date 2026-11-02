@@ -42,7 +42,7 @@ Alle Builds tragen dieselbe Signatur (`app/wetter-debug.keystore`), neue APKs in
 | [Open-Meteo](https://open-meteo.com) | Vorhersage, Luftqualität, Ortssuche, Temperatur-/Windraster | Ohne Schlüssel, frei für nicht-kommerzielle Nutzung, CC BY 4.0. Bündelt u. a. DWD ICON und ECMWF. |
 | [Bright Sky](https://brightsky.dev) | Amtliche DWD-Warnungen | Nur für Orte in Deutschland |
 | [RainViewer](https://www.rainviewer.com/api.html) | Regenradar | Letzte 2 Stunden, Zoom bis 7, Schema „Universal Blue“, keine Prognose mehr seit 2026 |
-| CARTO / OpenStreetMap | Grundkarte | |
+| OpenStreetMap | Grundkarte | Ohne Schlüssel. Die App meldet sich per eigenem User-Agent, sonst sperrt OSM die Kacheln. |
 
 ## Schrift
 

@@ -37,6 +37,9 @@ fun MapScreen(place: Place, onClose: () -> Unit) {
     BackHandler(onBack = onClose)
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    // Die Seite ist erst spaeter fertig; bis dahin kennt Compose die echten Raender
+    val latestTop by rememberUpdatedState(top)
+    val latestBottom by rememberUpdatedState(bottom)
 
     Box(Modifier.fillMaxSize().background(Color(0xFF0B1C33))) {
         AndroidView(
@@ -48,6 +51,7 @@ fun MapScreen(place: Place, onClose: () -> Unit) {
                     setBackgroundColor(0xFF0B1C33.toInt())
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
+                    settings.userAgentString = "WetterPrivat/1.1 (Android; private App von tjeronimo86)"
                     // Die Seite kommt aus file:// und holt Daten per fetch von den Wetterdiensten.
                     settings.allowUniversalAccessFromFileURLs = true
                     webChromeClient = object : WebChromeClient() {
@@ -68,7 +72,7 @@ fun MapScreen(place: Place, onClose: () -> Unit) {
                         override fun onPageFinished(view: WebView, url: String) {
                             val js = String.format(
                                 Locale.US, "start(%.4f,%.4f,%d,%d)", place.lat, place.lon,
-                                top.value.toInt(), bottom.value.toInt(),
+                                latestTop.value.toInt(), latestBottom.value.toInt(),
                             )
                             view.evaluateJavascript(js, null)
                         }

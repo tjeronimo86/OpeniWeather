@@ -16,7 +16,7 @@ adb logcat -c
 
 # 1. App mit echten Daten
 adb shell am start -n $PKG/.MainActivity
-sleep 30
+sleep 50
 shot app-1-oben
 adb shell am force-stop $PKG
 
@@ -24,10 +24,10 @@ adb shell am force-stop $PKG
 adb shell am start -n $PKG/.DebugMapActivity
 sleep 25
 shot map-1-radar
-adb shell input tap 950 300
+adb shell input tap 950 290
 sleep 12
 shot map-2-temperatur
-adb shell input tap 950 410
+adb shell input tap 950 400
 sleep 12
 shot map-3-wind
 
