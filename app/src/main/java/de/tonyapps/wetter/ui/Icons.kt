@@ -36,49 +36,54 @@ fun WeatherIcon(code: Int, isDay: Boolean, size: Dp, modifier: Modifier = Modifi
     Canvas(modifier.size(size)) {
         val s = this.size.minDimension
         val phase = t.value
-        when (kind) {
-            Kind.CLEAR -> if (isDay) sun(Offset(s * .5f, s * .5f), s * .24f, phase) else moon(Offset(s * .5f, s * .5f), s * .32f)
-            Kind.MOSTLY_CLEAR -> {
-                if (isDay) sun(Offset(s * .5f, s * .46f), s * .21f, phase) else moon(Offset(s * .5f, s * .46f), s * .28f)
-                cloud(Offset(s * .63f, s * .78f), s * .5f, CLOUD)
+        drawWeather(kind, isDay, s, phase)
+    }
+}
+
+/** Zeichnet ein Wettersymbol der Kantenlaenge `s`; auch von den Widgets genutzt. */
+fun DrawScope.drawWeather(kind: Kind, isDay: Boolean, s: Float, phase: Float) {
+    when (kind) {
+        Kind.CLEAR -> if (isDay) sun(Offset(s * .5f, s * .5f), s * .24f, phase) else moon(Offset(s * .5f, s * .5f), s * .32f)
+        Kind.MOSTLY_CLEAR -> {
+            if (isDay) sun(Offset(s * .5f, s * .46f), s * .21f, phase) else moon(Offset(s * .5f, s * .46f), s * .28f)
+            cloud(Offset(s * .63f, s * .78f), s * .5f, CLOUD)
+        }
+        Kind.PARTLY -> {
+            if (isDay) sun(Offset(s * .63f, s * .36f), s * .19f, phase) else moon(Offset(s * .66f, s * .34f), s * .22f)
+            cloud(Offset(s * .46f, s * .7f), s * .78f, CLOUD)
+        }
+        Kind.CLOUDY -> {
+            cloud(Offset(s * .6f, s * .55f), s * .66f, CLOUD_DARK)
+            cloud(Offset(s * .46f, s * .74f), s * .82f, CLOUD)
+        }
+        Kind.FOG -> {
+            cloud(Offset(s * .5f, s * .54f), s * .8f, CLOUD)
+            for (i in 0..2) {
+                val y = s * (.66f + i * .11f)
+                val shift = sin((phase + i * .3f) * 2 * PI.toFloat()) * s * .03f
+                drawLine(CLOUD.copy(alpha = .85f), Offset(s * (.14f + i * .06f) + shift, y), Offset(s * (.86f - i * .08f) + shift, y), s * .055f, StrokeCap.Round)
             }
-            Kind.PARTLY -> {
-                if (isDay) sun(Offset(s * .63f, s * .36f), s * .19f, phase) else moon(Offset(s * .66f, s * .34f), s * .22f)
-                cloud(Offset(s * .46f, s * .7f), s * .78f, CLOUD)
+        }
+        Kind.DRIZZLE -> { cloud(Offset(s * .5f, s * .54f), s * .84f, CLOUD); drops(s, phase, 3, .10f) }
+        Kind.RAIN -> { cloud(Offset(s * .5f, s * .52f), s * .84f, CLOUD); drops(s, phase, 3, .17f) }
+        Kind.HEAVY_RAIN -> { cloud(Offset(s * .5f, s * .5f), s * .84f, CLOUD); drops(s, phase, 4, .23f) }
+        Kind.SLEET -> { cloud(Offset(s * .5f, s * .52f), s * .84f, CLOUD); drops(s, phase, 2, .15f); flakes(s, phase, 1) }
+        Kind.SNOW -> { cloud(Offset(s * .5f, s * .52f), s * .84f, CLOUD); flakes(s, phase, 3) }
+        Kind.THUNDER -> {
+            cloud(Offset(s * .5f, s * .5f), s * .84f, CLOUD)
+            drops(s, phase, 2, .15f)
+            val flash = if (phase in .1f..0.18f || phase in .24f..0.3f) .55f else 1f
+            val p = Path().apply {
+                moveTo(s * .55f, s * .56f)
+                lineTo(s * .41f, s * .76f)
+                lineTo(s * .51f, s * .76f)
+                lineTo(s * .43f, s * .96f)
+                lineTo(s * .64f, s * .71f)
+                lineTo(s * .53f, s * .71f)
+                lineTo(s * .62f, s * .56f)
+                close()
             }
-            Kind.CLOUDY -> {
-                cloud(Offset(s * .6f, s * .55f), s * .66f, CLOUD_DARK)
-                cloud(Offset(s * .46f, s * .74f), s * .82f, CLOUD)
-            }
-            Kind.FOG -> {
-                cloud(Offset(s * .5f, s * .54f), s * .8f, CLOUD)
-                for (i in 0..2) {
-                    val y = s * (.66f + i * .11f)
-                    val shift = sin((phase + i * .3f) * 2 * PI.toFloat()) * s * .03f
-                    drawLine(CLOUD.copy(alpha = .85f), Offset(s * (.14f + i * .06f) + shift, y), Offset(s * (.86f - i * .08f) + shift, y), s * .055f, StrokeCap.Round)
-                }
-            }
-            Kind.DRIZZLE -> { cloud(Offset(s * .5f, s * .54f), s * .84f, CLOUD); drops(s, phase, 3, .10f) }
-            Kind.RAIN -> { cloud(Offset(s * .5f, s * .52f), s * .84f, CLOUD); drops(s, phase, 3, .17f) }
-            Kind.HEAVY_RAIN -> { cloud(Offset(s * .5f, s * .5f), s * .84f, CLOUD); drops(s, phase, 4, .23f) }
-            Kind.SLEET -> { cloud(Offset(s * .5f, s * .52f), s * .84f, CLOUD); drops(s, phase, 2, .15f); flakes(s, phase, 1) }
-            Kind.SNOW -> { cloud(Offset(s * .5f, s * .52f), s * .84f, CLOUD); flakes(s, phase, 3) }
-            Kind.THUNDER -> {
-                cloud(Offset(s * .5f, s * .5f), s * .84f, CLOUD)
-                drops(s, phase, 2, .15f)
-                val flash = if (phase in .1f..0.18f || phase in .24f..0.3f) .55f else 1f
-                val p = Path().apply {
-                    moveTo(s * .55f, s * .56f)
-                    lineTo(s * .41f, s * .76f)
-                    lineTo(s * .51f, s * .76f)
-                    lineTo(s * .43f, s * .96f)
-                    lineTo(s * .64f, s * .71f)
-                    lineTo(s * .53f, s * .71f)
-                    lineTo(s * .62f, s * .56f)
-                    close()
-                }
-                drawPath(p, BOLT.copy(alpha = flash))
-            }
+            drawPath(p, BOLT.copy(alpha = flash))
         }
     }
 }

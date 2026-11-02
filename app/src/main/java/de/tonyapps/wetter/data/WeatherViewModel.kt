@@ -8,6 +8,7 @@ import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import android.Manifest
+import de.tonyapps.wetter.widget.Widgets
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -21,72 +22,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import org.json.JSONArray
-import org.json.JSONObject
 import java.util.Locale
 import kotlin.coroutines.resume
 
-private const val CURRENT_ID = "current"
 private const val MAX_AGE_MS = 15 * 60 * 1000L
-
-/** Orte und Cache liegen in SharedPreferences; Android-Backup nimmt sie aufs neue Handy mit. */
-private class Store(context: Context) {
-    private val prefs = context.getSharedPreferences("wetter", Context.MODE_PRIVATE)
-
-    fun places(): List<Place> {
-        val json = prefs.getString("places", null) ?: return emptyList()
-        return runCatching {
-            val a = JSONArray(json)
-            List(a.length()) {
-                val o = a.getJSONObject(it)
-                Place(
-                    o.getString("id"), o.getString("name"), o.optString("region"), o.optString("cc"),
-                    o.getDouble("lat"), o.getDouble("lon"),
-                )
-            }
-        }.getOrDefault(emptyList())
-    }
-
-    fun savePlaces(list: List<Place>) {
-        val a = JSONArray()
-        list.filter { !it.isCurrent }.forEach {
-            a.put(
-                JSONObject().put("id", it.id).put("name", it.name).put("region", it.region)
-                    .put("cc", it.countryCode).put("lat", it.lat).put("lon", it.lon),
-            )
-        }
-        prefs.edit().putString("places", a.toString()).apply()
-    }
-
-    fun cached(id: String): RawWeather? {
-        val forecast = prefs.getString("f-$id", null) ?: return null
-        return RawWeather(forecast, prefs.getString("a-$id", null), prefs.getString("w-$id", null), prefs.getLong("t-$id", 0))
-    }
-
-    fun cache(id: String, raw: RawWeather) {
-        prefs.edit().putString("f-$id", raw.forecast).putString("a-$id", raw.air)
-            .putString("w-$id", raw.alerts).putLong("t-$id", raw.fetchedAt).apply()
-    }
-
-    fun drop(id: String) {
-        prefs.edit().remove("f-$id").remove("a-$id").remove("w-$id").remove("t-$id").apply()
-    }
-
-    fun lastCurrent(): Place? {
-        val json = prefs.getString("current-place", null) ?: return null
-        return runCatching {
-            val o = JSONObject(json)
-            Place(CURRENT_ID, o.getString("name"), "Mein Standort", o.optString("cc"), o.getDouble("lat"), o.getDouble("lon"), true)
-        }.getOrNull()
-    }
-
-    fun saveCurrent(p: Place) {
-        prefs.edit().putString(
-            "current-place",
-            JSONObject().put("name", p.name).put("cc", p.countryCode).put("lat", p.lat).put("lon", p.lon).toString(),
-        ).apply()
-    }
-}
 
 class WeatherViewModel(app: Application) : AndroidViewModel(app) {
     private val store = Store(app)
@@ -127,6 +66,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
             }
             error = if (failed) "Keine Verbindung. Letzte Daten werden angezeigt." else null
             loading = false
+            Widgets.updateAll(getApplication())
         }
     }
 
@@ -173,6 +113,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
             if (index >= 0) places[index] = place else places.add(0, place)
             places.remove(DEFAULT_PLACE)
             load(place)
+            Widgets.updateAll(ctx)
         }
     }
 

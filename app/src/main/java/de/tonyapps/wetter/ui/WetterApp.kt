@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @Composable
-fun WetterApp(vm: WeatherViewModel = viewModel()) {
+fun WetterApp(openPlace: String? = null, vm: WeatherViewModel = viewModel()) {
     WetterTheme {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
@@ -55,6 +55,10 @@ fun WetterApp(vm: WeatherViewModel = viewModel()) {
         LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.refreshAll() }
 
         val pager = rememberPagerState(pageCount = { vm.places.size })
+        LaunchedEffect(openPlace) {
+            val index = vm.places.indexOfFirst { it.id == openPlace }
+            if (index >= 0) pager.scrollToPage(index)
+        }
         var showList by remember { mutableStateOf(false) }
         var mapPlace by remember { mutableStateOf<Place?>(null) }
         var detail by remember { mutableStateOf<DetailRequest?>(null) }
