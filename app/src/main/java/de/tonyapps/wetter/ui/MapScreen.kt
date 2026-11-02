@@ -2,6 +2,7 @@ package de.tonyapps.wetter.ui
 
 import android.annotation.SuppressLint
 import android.util.Log
+import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -42,6 +43,8 @@ fun MapScreen(place: Place, onClose: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
                 WebView(ctx).apply {
+                    // Ohne feste Groesse misst die WebView nach Inhalt: Die Seite haette Hoehe 0.
+                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                     setBackgroundColor(0xFF0B1C33.toInt())
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true

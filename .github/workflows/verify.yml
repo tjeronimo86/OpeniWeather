@@ -41,7 +41,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -dns-server 8.8.8.8
           script: bash tools/ci/verify.sh
 
       - name: Ergebnis bereitstellen

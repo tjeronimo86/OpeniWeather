@@ -6,9 +6,10 @@
 <title>Wetterkarte</title>
 <link rel="stylesheet" href="leaflet.css">
 <style>
-  html,body,#map{height:100%;margin:0;background:#0b1c33}
+  html,body{height:100%;margin:0;background:#0b1c33}
+  #map{position:fixed;inset:0}
   body{font:500 14px/1.3 -apple-system,Roboto,sans-serif;color:#fff;-webkit-user-select:none;user-select:none}
-  .panel{position:absolute;z-index:1000;background:rgba(28,28,30,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:14px}
+  .panel{position:fixed;z-index:1000;background:rgba(28,28,30,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:14px}
   #layers{right:12px;display:flex;flex-direction:column;overflow:hidden}
   #layers button{all:unset;padding:11px 14px;font-size:14px;color:#fff;border-bottom:.5px solid rgba(255,255,255,.14)}
   #layers button:last-child{border-bottom:0}
@@ -25,7 +26,7 @@
   .temp{color:#fff;font-weight:600;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.65);text-align:center}
   .me{width:16px;height:16px;border-radius:50%;background:#0a84ff;border:3px solid #fff;box-sizing:border-box;box-shadow:0 0 0 8px rgba(10,132,255,.22);animation:pulse 2.4s ease-out infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(10,132,255,.5)}100%{box-shadow:0 0 0 22px rgba(10,132,255,0)}}
-  #wind{position:absolute;inset:0;z-index:450;pointer-events:none}
+  #wind{position:fixed;inset:0;z-index:450;pointer-events:none}
   .leaflet-container{background:#0b1c33}
   .leaflet-control-attribution{font-size:9px;background:rgba(0,0,0,.4)!important;color:#ddd}
   .leaflet-control-attribution a{color:#ddd}

@@ -25,7 +25,8 @@ class DebugRenderReceiver : BroadcastReceiver() {
         if (intent.action == "de.tonyapps.wetter.DEBUG_PIN") {
             val manager = AppWidgetManager.getInstance(context)
             val style = WidgetStyle.valueOf(intent.getStringExtra("style") ?: "LARGE")
-            Log.i("WetterDebug", "pin ${manager.requestPinAppWidget(ComponentName(context, Widgets.providerOf(style)), null, null)}")
+            val result = runCatching { manager.requestPinAppWidget(ComponentName(context, Widgets.providerOf(style)), null, null) }
+            Log.i("WetterDebug", "pin $result")
             return
         }
         val pending = goAsync()

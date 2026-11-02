@@ -10,6 +10,13 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell pm grant $PKG android.permission.ACCESS_FINE_LOCATION
 adb shell pm grant $PKG android.permission.ACCESS_COARSE_LOCATION
 adb emu geo fix 8.85 50.07
+adb shell ping -c 2 8.8.8.8
+adb shell ping -c 2 api.open-meteo.com
+adb shell settings put global captive_portal_mode 0
+adb shell svc wifi enable
+adb shell svc data enable
+sleep 8
+adb shell ping -c 2 api.open-meteo.com
 adb logcat -c
 adb shell am start -n $PKG/.MainActivity
 sleep 40
@@ -40,8 +47,8 @@ sleep 25
 adb pull /sdcard/Android/data/$PKG/files/widgets "$OUT/widgets"
 
 # Echtes Widget auf dem Startbildschirm: Pin-Dialog anfragen und bestaetigen
-adb shell input keyevent KEYCODE_HOME
-sleep 3
+adb shell am start -n $PKG/.MainActivity
+sleep 6
 adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_PIN --es style LARGE
 sleep 5
 shot pin-dialog
@@ -49,9 +56,11 @@ adb shell uiautomator dump /sdcard/ui.xml
 adb pull /sdcard/ui.xml "$OUT/ui.xml"
 python3 tools/ci/tap_add.py "$OUT/ui.xml" | while read -r x y; do adb shell input tap "$x" "$y"; done
 sleep 12
+adb shell input keyevent KEYCODE_HOME
+sleep 5
 shot home-widget
 
 adb logcat -d -s WetterDebug:* WetterMap:* AndroidRuntime:E System.err:W > "$OUT/log.txt"
-adb logcat -d | grep -iE "wetter|RemoteViews|TransactionTooLarge" | tail -200 > "$OUT/log-all.txt"
+adb logcat -d | grep -iE "wetter|RemoteViews|TransactionTooLarge|Fatal signal|has died|am_crash" | tail -300 > "$OUT/log-all.txt"
 (cd out && zip -qr verify.zip verify)
 exit 0
