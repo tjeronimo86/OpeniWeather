@@ -188,7 +188,8 @@ fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier) {
     }
     val brush = remember { ShaderBrush(shader) }
     var time by remember { mutableFloatStateOf(0f) }
-    var scale by remember { mutableFloatStateOf(1.5f) }
+    // Der Software-Renderer des Emulators schafft die hohe Stufe nicht einmal fuers erste Bild
+    var scale by remember { mutableFloatStateOf(if (android.os.Build.HARDWARE == "ranchu") 5f else 1.5f) }
     LaunchedEffect(Unit) {
         val start = withFrameNanos { it }
         var windowStart = start
@@ -200,7 +201,7 @@ fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier) {
                 val window = now - windowStart
                 if (window > 1_200_000_000L) {
                     // Unter rund 40 Bildern pro Sekunde eine Stufe groeber rendern
-                    if (window / frames > 25_000_000L && scale < 4f) scale += .5f
+                    if (window / frames > 25_000_000L && scale < 3f) scale += .5f
                     windowStart = now
                     frames = 0
                 }

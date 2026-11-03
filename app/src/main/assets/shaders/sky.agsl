@@ -49,10 +49,31 @@ float fbm(vec2 p) {
     return v;
 }
 
+// Grobe Variante fuer Licht und Verwirbelung: kostet ein Drittel und faellt dort nicht auf
+float fbmLite(vec2 p) {
+    float v = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 3; i++) {
+        v += a * noise(p);
+        p = vec2(p.x * 1.6 - p.y * 1.2, p.x * 1.2 + p.y * 1.6) + 7.3;
+        a *= 0.5;
+    }
+    return v + 0.09;
+}
+
+// Dichte fuer die Lichtberechnung, ohne feine Kanten
+float cloudLite(vec2 p, float cover, float seed) {
+    vec2 q = p + seed;
+    float warp = fbmLite(q * 0.8 + vec2(uCloudTime * 0.012, -uCloudTime * 0.007));
+    float n = fbmLite(q + 0.34 * vec2(warp, warp * 0.6));
+    float edge = 0.74 - cover * 0.66;
+    return smoothstep(edge, edge + 0.075 + cover * 0.20, n);
+}
+
 // Wolkendichte: grosse Form + aufgewirbelte Kante
 float cloudField(vec2 p, float cover, float seed) {
     vec2 q = p + seed;
-    float warp = fbm(q * 0.8 + vec2(uCloudTime * 0.012, -uCloudTime * 0.007));
+    float warp = fbmLite(q * 0.8 + vec2(uCloudTime * 0.012, -uCloudTime * 0.007));
     float n = fbm(q + 0.34 * vec2(warp, warp * 0.6));
     // Kleine Quellformen fressen die Kante an, das macht Cumulus statt Schleier
     // Gedrehte Koordinaten, sonst zeichnet das Rauschen bei hoher Frequenz ein Gitter
@@ -61,7 +82,7 @@ float cloudField(vec2 p, float cover, float seed) {
     float billow = abs(noise(r1 * 5.0 + warp) - 0.5) * 2.0
                  + 0.5 * abs(noise(r2 * 11.0 - warp) - 0.5) * 2.0;
     n -= (1.0 - smoothstep(0.35, 0.75, n)) * billow * 0.12;
-    n += (fbm(r2 * 9.0 + warp) - 0.5) * 0.05;
+    n += (fbmLite(r2 * 9.0 + warp) - 0.5) * 0.05;
     float edge = 0.74 - cover * 0.66;
     return smoothstep(edge, edge + 0.075 + cover * 0.20, n);
 }
@@ -215,17 +236,18 @@ half4 main(vec2 frag) {
 
         vec2 pFar = vec2(uv.x * 2.1 + uCloudTime * 0.008, uv.y * 3.3);
         float dFar = cloudField(pFar, uCloud * 0.85 * band, 11.0);
-        float dFar2 = cloudField(pFar + toSun * 0.11, uCloud * 0.85 * band, 11.0);
-        float shFar = clamp(0.62 + (dFar - dFar2) * 1.15 + (fbm(pFar * 2.8) - 0.5) * 0.5, 0.0, 1.0);
+        float dFar2 = cloudLite(pFar + toSun * 0.11, uCloud * 0.85 * band, 11.0);
+        float shFar = clamp(0.62 + (cloudLite(pFar, uCloud * 0.85 * band, 11.0) - dFar2) * 1.15 + (fbmLite(pFar * 2.8) - 0.5) * 0.5, 0.0, 1.0);
         col = mix(col, mix(shadeCol, lightCol, shFar), dFar * 0.72);
 
         vec2 pNear = vec2(uv.x * 1.15 + uCloudTime * 0.017, uv.y * 1.75);
         float dNear = cloudField(pNear, uCloud * band, 3.0);
-        float dNear2 = cloudField(pNear + toSun * 0.06, uCloud * band, 3.0);
-        float dNear3 = cloudField(pNear + toSun * 0.16, uCloud * band, 3.0);
-        float shNear = clamp(0.60 + (dNear - dNear2) * 1.1 + (dNear - dNear3) * 0.6, 0.0, 1.0);
+        float dNear2 = cloudLite(pNear + toSun * 0.06, uCloud * band, 3.0);
+        float dNear3 = cloudLite(pNear + toSun * 0.16, uCloud * band, 3.0);
+        float dBase = cloudLite(pNear, uCloud * band, 3.0);
+        float shNear = clamp(0.60 + (dBase - dNear2) * 1.1 + (dBase - dNear3) * 0.6, 0.0, 1.0);
         // Innere Struktur, damit eine geschlossene Decke nicht flach wirkt
-        float inner = fbm(pNear * 1.7 + vec2(uCloudTime * 0.01, 2.0));
+        float inner = fbmLite(pNear * 1.7 + vec2(uCloudTime * 0.01, 2.0));
         float fine = fbm(vec2(pNear.x * 5.2 - pNear.y * 3.9, pNear.x * 3.9 + pNear.y * 5.2) + inner * 1.3);
         shNear = clamp(shNear + (inner - 0.5) * mix(0.55, 1.2, uGrey) + (fine - 0.5) * 0.34, 0.0, 1.0);
         // Unterseiten sind dunkler
