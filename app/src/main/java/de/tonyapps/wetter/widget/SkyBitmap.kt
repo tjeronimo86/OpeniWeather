@@ -11,14 +11,16 @@ import android.graphics.RuntimeShader
 import android.hardware.HardwareBuffer
 import android.media.ImageReader
 import de.tonyapps.wetter.sky.SkyParams
-import kotlin.math.PI
-import kotlin.math.cos
 
-/** Eigene Bilder der Wolkenschleife; hin und zurueck ergibt das rund 4 Sekunden. */
-const val SKY_FRAMES = 10
+/**
+ * Eigene Bilder der Wolkenschleife. Das Widget blendet jedes weich ins naechste
+ * (res/anim/sky_in.xml), deshalb wirkt die Bewegung trotz weniger Bilder fluessig.
+ * Bei 450 ms pro Bild dauert die Schleife rund 6,8 Sekunden.
+ */
+const val SKY_FRAMES = 14
 
-/** Wegstrecke der Wolken in Shader-Sekunden. */
-private const val CLOUD_TRAVEL = 4f
+/** Wolkenzeit pro Schleife: so weit ziehen die Wolken, bevor die Schleife sich schliesst. */
+private const val LOOP = 20f
 
 /**
  * Rendert den App-Shader in Bitmaps, damit Widgets denselben Himmel zeigen.
@@ -27,22 +29,23 @@ private const val CLOUD_TRAVEL = 4f
 object SkyBitmap {
     /** Ein Standbild. Null, wenn es nicht klappt; das Widget nimmt dann einen Verlauf. */
     fun render(context: Context, width: Int, height: Int, p: SkyParams): Bitmap? = runCatching {
-        Session(context, width, height, p).use { it.frame(41f, 41f) }
+        Session(context, width, height, p).use { it.frame(41f, 0f) }
     }.getOrNull()
 
     /**
-     * Eine nahtlose Wolkenschleife ohne Ueberblenden, jedes Bild bleibt scharf: Die Wolken
-     * ziehen langsam hin und zurueck und werden an den Wendepunkten sanft abgebremst.
-     * Fuer den Rueckweg werden dieselben Bitmaps wiederverwendet, das kostet keinen Speicher.
+     * Eine nahtlose Wolkenschleife, die Wolken ziehen dabei immer in dieselbe Richtung.
+     * Der Shader mischt jeden Zeitpunkt mit demselben Zeitpunkt eine Schleife frueher
+     * (uLoopW), vor der Wolkenkante: Jedes Bild bleibt scharf und das letzte fuehrt genau
+     * auf das erste zu. Das erste Bild steht am Ende noch einmal, damit auch dieser
+     * Uebergang weich eingeblendet wird; dieselbe Bitmap kostet keinen Speicher.
      */
     fun clouds(context: Context, width: Int, height: Int, p: SkyParams): List<Bitmap> = runCatching {
         Session(context, width, height, p).use { session ->
-            val forward = List(SKY_FRAMES) { i ->
-                val phase = i / (SKY_FRAMES - 1f)
-                val eased = (1f - cos(phase * PI.toFloat())) / 2f
-                session.frame(41f + i * .25f, 41f + eased * CLOUD_TRAVEL)
+            val frames = List(SKY_FRAMES) { i ->
+                val w = i / SKY_FRAMES.toFloat()
+                session.frame(41f + w * LOOP, w)
             }
-            forward + forward.reversed().drop(1).dropLast(1)
+            frames + frames.first()
         }
     }.getOrDefault(emptyList())
 
@@ -70,14 +73,17 @@ object SkyBitmap {
             shader.setFloatUniform("uDusk", p.dusk)
             shader.setFloatUniform("uSun", p.sunX, p.sunY)
             shader.setFloatUniform("uMoon", p.moon)
+            // Sterne und Funkeln stehen im Widget still, sonst springen sie am Schleifenende
+            shader.setFloatUniform("uTime", 41f)
+            shader.setFloatUniform("uLoopT", LOOP)
             node.setPosition(0, 0, width, height)
             renderer.setSurface(reader.surface)
             renderer.setContentRoot(node)
         }
 
-        fun frame(time: Float, cloudTime: Float): Bitmap {
-            shader.setFloatUniform("uTime", time)
+        fun frame(cloudTime: Float, loopW: Float): Bitmap {
             shader.setFloatUniform("uCloudTime", cloudTime)
+            shader.setFloatUniform("uLoopW", loopW)
             paint.shader = shader
             val canvas = node.beginRecording()
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Wechselzeit der Widget-Wolkenbilder, zugleich Dauer der Ueberblendung -->
+    <integer name="sky_flip_ms">450</integer>
+</resources>

@@ -8,13 +8,17 @@
     android:contentDescription="Wetter">
 
     <!-- ViewFlipper ist der einzige Weg zu Dauer-Animation in RemoteViews.
-         Beide pausieren von selbst, wenn der Startbildschirm nicht sichtbar ist. -->
+         Beide pausieren von selbst, wenn der Startbildschirm nicht sichtbar ist.
+         Der Himmel blendet jedes Bild ueber die volle Wechselzeit ins naechste,
+         das alte bleibt so lange stehen: so fliesst die Bewegung statt zu springen. -->
     <ViewFlipper
         android:id="@+id/widget_sky"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:autoStart="true"
-        android:flipInterval="220" />
+        android:flipInterval="@integer/sky_flip_ms"
+        android:inAnimation="@anim/sky_in"
+        android:outAnimation="@anim/sky_hold" />
 
     <!-- Regen, Schnee und Blitze laufen schneller und getrennt von den Wolken -->
     <ViewFlipper

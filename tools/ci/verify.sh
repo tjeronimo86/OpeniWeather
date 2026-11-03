@@ -57,6 +57,9 @@ adb shell input keyevent KEYCODE_HOME
 sleep 75
 for n in 1 2 3 4 5 6; do shot home-widget-$n; sleep 0.2; done
 cp "$OUT/home-widget-1.png" "$OUT/home-widget.png"
+# Bewegung pruefen: 12 Sekunden Startbildschirm, darin fast zwei Wolkenschleifen
+adb shell screenrecord --time-limit 12 /sdcard/widget.mp4
+adb pull /sdcard/widget.mp4 "$OUT/home-widget.mp4"
 # Gewitter als schwerster Fall fuer die Speichergrenze
 adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_SCENE --ei scene 4
 sleep 60

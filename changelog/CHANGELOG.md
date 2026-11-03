@@ -1,5 +1,9 @@
 # Update-Verlauf
 
+## 1.5 – 3. November 2026
+- Widget-Wolken laufen jetzt flüssig: Jedes Bild blendet weich ins nächste, statt zu springen
+- Die Wolken ziehen immer in eine Richtung und gehen nahtlos in die nächste Runde über, kein Hin und Her mehr
+
 ## 1.4 – 3. November 2026
 - Himmel in deutlich höherer Auflösung, mit feinerem Wolkendetail und besserem Licht
 - Kein Flackern mehr beim Wischen zwischen Orten

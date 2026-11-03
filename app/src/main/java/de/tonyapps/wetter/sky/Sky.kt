@@ -230,6 +230,8 @@ fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier) {
                 shader.setFloatUniform("uRes", size.width, size.height)
                 shader.setFloatUniform("uTime", time)
                 shader.setFloatUniform("uCloudTime", time)
+                shader.setFloatUniform("uLoopT", 0f)
+                shader.setFloatUniform("uLoopW", 0f)
                 shader.setFloatUniform("uCloud", p.cloud)
                 shader.setFloatUniform("uGrey", p.grey)
                 shader.setFloatUniform("uRain", p.rain)
