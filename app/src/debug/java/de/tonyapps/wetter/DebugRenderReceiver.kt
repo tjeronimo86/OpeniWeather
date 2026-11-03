@@ -29,7 +29,6 @@ class DebugRenderReceiver : BroadcastReceiver() {
             Log.i("WetterDebug", "pin $result")
             return
         }
-        val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val dir = File(context.getExternalFilesDir(null), "widgets").apply { mkdirs() }
@@ -38,14 +37,14 @@ class DebugRenderReceiver : BroadcastReceiver() {
                 val weather = store.cached(place.id)?.let { Parser.parse(it) }
                 Log.i("WetterDebug", "place=${place.name} weather=${weather != null} shader=${SkyBitmap.render(context, 64, 64, DEMO_SCENES[1].second) != null}")
                 val renderer = WidgetRenderer(context)
-                WidgetStyle.entries.forEach { style ->
+                listOf(WidgetStyle.MEDIUM).forEach { style ->
                     save(renderer.render(style, place, weather, style.defaultW, style.defaultH), File(dir, "${style.name}.png"))
                 }
-                listOf(0, 3, 5, 9).forEach { i ->
+                emptyList<Int>().forEach { i ->
                     val sky = DEMO_SCENES[i].second
                     save(renderer.render(WidgetStyle.SMALL, place, weather, 158, 158, sky), File(dir, "scene$i.png"))
                 }
-                listOf(3, 4, 5).forEach { i ->
+                listOf(3, 4).forEach { i ->
                     val started = System.currentTimeMillis()
                     val loop = renderer.skyLoop(weather, 338, 158, DEMO_SCENES[i].second)
                     Log.i("WetterDebug", "loop scene$i frames=${loop.size} ms=${System.currentTimeMillis() - started} bytes=${loop.sumOf { it.allocationByteCount }}")
@@ -54,8 +53,6 @@ class DebugRenderReceiver : BroadcastReceiver() {
                 Log.i("WetterDebug", "render done")
             } catch (t: Throwable) {
                 Log.e("WetterDebug", "render failed", t)
-            } finally {
-                pending.finish()
             }
         }
     }

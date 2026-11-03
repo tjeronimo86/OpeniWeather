@@ -33,7 +33,10 @@ shot map-3-wind
 
 # 3. Widgets als PNG
 adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_RENDER
-sleep 100
+for n in $(seq 1 40); do
+  adb logcat -d -s WetterDebug:* | grep -q "render done" && break
+  sleep 5
+done
 adb pull /sdcard/Android/data/$PKG/files/widgets "$OUT/widgets"
 
 # 4. Echtes Widget: Pin-Dialog bestaetigen, dann Startbildschirm
@@ -45,7 +48,7 @@ adb pull /sdcard/ui.xml "$OUT/ui.xml"
 python3 tools/ci/tap_add.py "$OUT/ui.xml" | while read -r x y; do adb shell input tap "$x" "$y"; done
 sleep 8
 adb shell input keyevent KEYCODE_HOME
-sleep 25
+sleep 75
 for n in 1 2 3 4 5 6; do shot home-widget-$n; sleep 0.2; done
 cp "$OUT/home-widget-1.png" "$OUT/home-widget.png"
 
