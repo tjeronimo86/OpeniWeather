@@ -39,6 +39,12 @@ import kotlin.math.min
 import kotlin.math.sin
 import androidx.compose.ui.graphics.Canvas as ComposeCanvas
 
+/** Leichte Abdunklung, damit weisse Schrift auch vor hellen Wolken lesbar bleibt. */
+private const val DIM = 0x1F000000
+
+/** Die Schleife braucht wenig Aufloesung, spart aber viel Speicher pro Bild. */
+private const val SKY_DOWNSCALE = 2.5f
+
 enum class WidgetStyle(val defaultW: Int, val defaultH: Int) {
     SMALL(158, 158),
     MEDIUM(338, 158),
@@ -63,22 +69,50 @@ class WidgetRenderer(private val context: Context) {
     private fun font(id: Int): Typeface =
         ResourcesCompat.getFont(context, id) ?: Typeface.DEFAULT
 
+    /** Fertiges Widget als ein Bild, wenn keine Animation moeglich ist. */
     fun render(style: WidgetStyle, place: Place, w: Weather?, widthDp: Int, heightDp: Int, sky: SkyParams? = null): Bitmap {
         val width = widthDp.coerceIn(100, 600).toFloat()
         val height = heightDp.coerceIn(100, 700).toFloat()
-        val density = min(context.resources.displayMetrics.density, 2.75f)
+        val density = density()
         val bitmap = Bitmap.createBitmap((width * density).toInt(), (height * density).toInt(), Bitmap.Config.ARGB_8888)
         val c = Canvas(bitmap)
         c.scale(density, density)
+        background(c, width, height, sky ?: skyOf(w), density)
+        content(c, style, place, w, width, height)
+        return bitmap
+    }
 
-        val params = sky ?: w?.let { skyFor(it) } ?: SkyParams(cloud = .3f)
-        background(c, width, height, params, density)
+    /** Nur Text, Symbole und Balken auf transparentem Grund; liegt ueber der Himmels-Schleife. */
+    fun overlay(style: WidgetStyle, place: Place, w: Weather?, widthDp: Int, heightDp: Int): Bitmap {
+        val width = widthDp.coerceIn(100, 600).toFloat()
+        val height = heightDp.coerceIn(100, 700).toFloat()
+        val density = density()
+        val bitmap = Bitmap.createBitmap((width * density).toInt(), (height * density).toInt(), Bitmap.Config.ARGB_8888)
+        val c = Canvas(bitmap)
+        c.scale(density, density)
+        c.drawColor(DIM)
+        content(c, style, place, w, width, height)
+        return bitmap
+    }
 
+    /** Die Himmels-Schleife, leer, wenn der Shader nicht laeuft. */
+    fun skyLoop(w: Weather?, widthDp: Int, heightDp: Int, sky: SkyParams? = null): List<Bitmap> {
+        val density = density()
+        val width = widthDp.coerceIn(100, 600) * density / SKY_DOWNSCALE
+        val height = heightDp.coerceIn(100, 700) * density / SKY_DOWNSCALE
+        return SkyBitmap.loop(context, width.toInt(), height.toInt(), sky ?: skyOf(w))
+    }
+
+    private fun skyOf(w: Weather?): SkyParams = w?.let { skyFor(it) } ?: SkyParams(cloud = .3f)
+
+    private fun density(): Float = min(context.resources.displayMetrics.density, 2.75f)
+
+    private fun content(c: Canvas, style: WidgetStyle, place: Place, w: Weather?, width: Float, height: Float) {
         val pad = 15f
         if (w == null || w.days.isEmpty()) {
             label(c, place.name, pad, pad + 14f, 15f, semi, width - 2 * pad)
             label(c, "Wird geladen …", pad, height - pad, 13f, medium, width - 2 * pad)
-            return bitmap
+            return
         }
         when (style) {
             WidgetStyle.SMALL -> small(c, place, w, width, height, pad)
@@ -99,7 +133,6 @@ class WidgetRenderer(private val context: Context) {
             }
             WidgetStyle.SUN -> sun(c, w, width, height, pad)
         }
-        return bitmap
     }
 
     private fun background(c: Canvas, width: Float, height: Float, p: SkyParams, density: Float) {
@@ -120,7 +153,7 @@ class WidgetRenderer(private val context: Context) {
         c.drawRoundRect(box, radius, radius, paint)
         // Leichte Abdunklung haelt weisse Schrift auch vor hellen Wolken lesbar
         fill.shader = null
-        fill.color = 0x1F000000
+        fill.color = DIM
         c.drawRoundRect(box, radius, radius, fill)
     }
 

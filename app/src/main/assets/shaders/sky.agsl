@@ -2,7 +2,8 @@
 // Haelt sich an die ES2-Regeln: nur konstante for-Schleifen, kein while.
 // Dieselbe Datei wird in tools/preview per WebGL gerendert.
 uniform vec2  uRes;     // Aufloesung in Pixeln
-uniform float uTime;    // Sekunden
+uniform float uTime;    // Sekunden (Niederschlag, Sterne, Blitze)
+uniform float uCloudTime; // Sekunden fuer Wolken und Nebel
 uniform float uCloud;   // Wolkenmenge 0..1
 uniform float uGrey;    // Wolken-Dunkelheit 0..1
 uniform float uRain;    // Regenstaerke 0..1
@@ -50,7 +51,7 @@ float fbm(vec2 p) {
 // Wolkendichte: grosse Form + aufgewirbelte Kante
 float cloudField(vec2 p, float cover, float seed) {
     vec2 q = p + seed;
-    float warp = fbm(q * 0.8 + vec2(uTime * 0.012, -uTime * 0.007));
+    float warp = fbm(q * 0.8 + vec2(uCloudTime * 0.012, -uCloudTime * 0.007));
     float n = fbm(q + 0.34 * vec2(warp, warp * 0.6));
     // Kleine Quellformen fressen die Kante an, das macht Cumulus statt Schleier
     float billow = abs(noise(q * 5.0 + warp) - 0.5) * 2.0 + 0.5 * abs(noise(q * 11.0 - warp) - 0.5) * 2.0;
@@ -205,18 +206,18 @@ half4 main(vec2 frag) {
         // Wolken sitzen eher oben, unten wird der Himmel frei
         float band = mix(smoothstep(0.92, 0.22, y), 1.0, smoothstep(0.55, 0.95, uCloud));
 
-        vec2 pFar = vec2(uv.x * 2.1 + uTime * 0.008, uv.y * 3.3);
+        vec2 pFar = vec2(uv.x * 2.1 + uCloudTime * 0.008, uv.y * 3.3);
         float dFar = cloudField(pFar, uCloud * 0.85 * band, 11.0);
         float dFar2 = cloudField(pFar + toSun * 0.11, uCloud * 0.85 * band, 11.0);
         float shFar = clamp(0.62 + (dFar - dFar2) * 1.15, 0.0, 1.0);
         col = mix(col, mix(shadeCol, lightCol, shFar), dFar * 0.72);
 
-        vec2 pNear = vec2(uv.x * 1.15 + uTime * 0.017, uv.y * 1.75);
+        vec2 pNear = vec2(uv.x * 1.15 + uCloudTime * 0.017, uv.y * 1.75);
         float dNear = cloudField(pNear, uCloud * band, 3.0);
         float dNear2 = cloudField(pNear + toSun * 0.09, uCloud * band, 3.0);
         float shNear = clamp(0.60 + (dNear - dNear2) * 1.5, 0.0, 1.0);
         // Innere Struktur, damit eine geschlossene Decke nicht flach wirkt
-        float inner = fbm(pNear * 1.7 + vec2(uTime * 0.01, 2.0));
+        float inner = fbm(pNear * 1.7 + vec2(uCloudTime * 0.01, 2.0));
         shNear = clamp(shNear + (inner - 0.5) * mix(0.55, 1.35, uGrey), 0.0, 1.0);
         // Unterseiten sind dunkler
         shNear *= mix(1.0, 0.82 + 0.18 * smoothstep(0.75, 0.15, dNear2), dNear);
@@ -243,8 +244,8 @@ half4 main(vec2 frag) {
     if (uFog > 0.01) {
         vec3 fogCol = mix(vec3(0.11, 0.13, 0.18), vec3(0.78, 0.81, 0.84), uDay);
         fogCol = mix(fogCol, vec3(0.86, 0.72, 0.66), uDusk * 0.5);
-        float n1 = fbm(vec2(uv.x * 0.9 + uTime * 0.02, uv.y * 4.6));
-        float n2 = fbm(vec2(uv.x * 1.5 - uTime * 0.013, uv.y * 8.0 + 4.0));
+        float n1 = fbm(vec2(uv.x * 0.9 + uCloudTime * 0.02, uv.y * 4.6));
+        float n2 = fbm(vec2(uv.x * 1.5 - uCloudTime * 0.013, uv.y * 8.0 + 4.0));
         float a = smoothstep(0.08, 0.9, y + (n1 - 0.5) * 0.9) * (0.55 + 0.75 * n2);
         col = mix(col, fogCol, clamp(a * uFog + 0.34 * uFog, 0.0, 0.95));
     }

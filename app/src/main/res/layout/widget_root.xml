@@ -3,12 +3,24 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:clipToOutline="true"
     android:contentDescription="Wetter">
 
+    <!-- Der Himmel: ViewFlipper ist der einzige Weg zu Dauer-Animation in RemoteViews.
+         Er pausiert von selbst, wenn der Startbildschirm nicht sichtbar ist. -->
+    <ViewFlipper
+        android:id="@+id/widget_sky"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:autoStart="true"
+        android:flipInterval="100" />
+
+    <!-- Text und Symbole bleiben als feste Ebene darueber -->
     <ImageView
         android:id="@+id/widget_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:importantForAccessibility="no"
-        android:scaleType="fitCenter" />
+        android:scaleType="fitXY" />
 </FrameLayout>

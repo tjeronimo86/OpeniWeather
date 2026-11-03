@@ -13,8 +13,8 @@ android {
         // Die Himmels-Animation nutzt AGSL (RuntimeShader), das gibt es ab Android 13.
         minSdk = 33
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.3"
     }
 
     // Fester Schluessel im Repo: Jeder CI-Build traegt dieselbe Signatur,

@@ -45,6 +45,12 @@ class DebugRenderReceiver : BroadcastReceiver() {
                     val sky = DEMO_SCENES[i].second
                     save(renderer.render(WidgetStyle.SMALL, place, weather, 158, 158, sky), File(dir, "scene$i.png"))
                 }
+                listOf(3, 4, 5).forEach { i ->
+                    val started = System.currentTimeMillis()
+                    val loop = renderer.skyLoop(weather, 338, 158, DEMO_SCENES[i].second)
+                    Log.i("WetterDebug", "loop scene$i frames=${loop.size} ms=${System.currentTimeMillis() - started} bytes=${loop.sumOf { it.allocationByteCount }}")
+                    loop.forEachIndexed { n, frame -> save(frame, File(dir, "loop${i}_$n.png")) }
+                }
                 Log.i("WetterDebug", "render done")
             } catch (t: Throwable) {
                 Log.e("WetterDebug", "render failed", t)

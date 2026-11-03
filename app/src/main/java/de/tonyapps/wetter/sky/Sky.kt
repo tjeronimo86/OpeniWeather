@@ -205,6 +205,7 @@ fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier, scale:
                 val p = currentParams()
                 shader.setFloatUniform("uRes", size.width, size.height)
                 shader.setFloatUniform("uTime", time)
+                shader.setFloatUniform("uCloudTime", time)
                 shader.setFloatUniform("uCloud", p.cloud)
                 shader.setFloatUniform("uGrey", p.grey)
                 shader.setFloatUniform("uRain", p.rain)

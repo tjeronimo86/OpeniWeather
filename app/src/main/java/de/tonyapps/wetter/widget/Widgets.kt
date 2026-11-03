@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.RemoteViews
 import de.tonyapps.wetter.MainActivity
 import de.tonyapps.wetter.R
@@ -65,23 +66,68 @@ object Widgets {
                 val options = manager.getAppWidgetOptions(id)
                 val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it > 0 } ?: style.defaultW
                 val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it > 0 } ?: style.defaultH
-                val bitmap = renderer.render(style, place, weather, width, height)
-                val views = RemoteViews(context.packageName, R.layout.widget_root)
-                views.setImageViewBitmap(R.id.widget_image, bitmap)
+                val views = animatedViews(context, renderer, style, place, weather, width, height)
                 val description = weather?.let {
                     "${place.name}: ${it.current.temp.toInt()} Grad, ${conditionText(it.current.code, it.current.isDay, it.current.cloud)}"
                 } ?: place.name
-                views.setContentDescription(R.id.widget_root, description)
-                val open = Intent(context, MainActivity::class.java)
-                    .putExtra(MainActivity.EXTRA_PLACE, place.id)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                views.setOnClickPendingIntent(
-                    R.id.widget_root,
-                    PendingIntent.getActivity(context, id, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE),
-                )
-                manager.updateAppWidget(id, views)
+                decorate(context, views, place, id, description)
+                try {
+                    manager.updateAppWidget(id, views)
+                } catch (e: IllegalArgumentException) {
+                    // Android begrenzt den Bildspeicher pro Widget: dann eben als Standbild
+                    Log.w("Widgets", "Schleife zu gross", e)
+                    val still = stillViews(context, renderer, style, place, weather, width, height)
+                    decorate(context, still, place, id, description)
+                    manager.updateAppWidget(id, still)
+                }
             }
         }
+    }
+
+    private fun animatedViews(
+        context: Context,
+        renderer: WidgetRenderer,
+        style: WidgetStyle,
+        place: Place,
+        weather: Weather?,
+        width: Int,
+        height: Int,
+    ): RemoteViews {
+        val frames = renderer.skyLoop(weather, width, height)
+        if (frames.isEmpty()) return stillViews(context, renderer, style, place, weather, width, height)
+        val views = RemoteViews(context.packageName, R.layout.widget_root)
+        frames.forEach { frame ->
+            val child = RemoteViews(context.packageName, R.layout.widget_frame)
+            child.setImageViewBitmap(R.id.widget_frame, frame)
+            views.addView(R.id.widget_sky, child)
+        }
+        views.setImageViewBitmap(R.id.widget_image, renderer.overlay(style, place, weather, width, height))
+        return views
+    }
+
+    private fun stillViews(
+        context: Context,
+        renderer: WidgetRenderer,
+        style: WidgetStyle,
+        place: Place,
+        weather: Weather?,
+        width: Int,
+        height: Int,
+    ): RemoteViews {
+        val views = RemoteViews(context.packageName, R.layout.widget_root)
+        views.setImageViewBitmap(R.id.widget_image, renderer.render(style, place, weather, width, height))
+        return views
+    }
+
+    private fun decorate(context: Context, views: RemoteViews, place: Place, id: Int, description: String) {
+        views.setContentDescription(R.id.widget_root, description)
+        val open = Intent(context, MainActivity::class.java)
+            .putExtra(MainActivity.EXTRA_PLACE, place.id)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        views.setOnClickPendingIntent(
+            R.id.widget_root,
+            PendingIntent.getActivity(context, id, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE),
+        )
     }
 
     /** Aktualisiert alle Widgets aus dem Cache; die App ruft das nach jedem Laden auf. */
@@ -101,7 +147,7 @@ abstract class WeatherWidget(private val style: WidgetStyle) : AppWidgetProvider
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                withTimeoutOrNull(25_000) { block() }
+                withTimeoutOrNull(45_000) { block() }
             } finally {
                 pending.finish()
             }

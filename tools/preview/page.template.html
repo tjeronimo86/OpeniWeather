@@ -84,7 +84,7 @@ if(gl){const frag='precision highp float;\n#define half4 vec4\n#define half3 vec
  gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
  const a=gl.getAttribLocation(p,'a');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
  const loc={};const u=n=>loc[n]??=gl.getUniformLocation(p,n);
- set=(s,t)=>{gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(u('uRes'),canvas.width,canvas.height);gl.uniform1f(u('uTime'),t);for(const k in s)Array.isArray(s[k])?gl.uniform2f(u(k),s[k][0],s[k][1]):gl.uniform1f(u(k),s[k]);gl.drawArrays(gl.TRIANGLES,0,3)}}
+ set=(s,t)=>{gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(u('uRes'),canvas.width,canvas.height);gl.uniform1f(u('uTime'),t);gl.uniform1f(u('uCloudTime'),t);for(const k in s)Array.isArray(s[k])?gl.uniform2f(u(k),s[k][0],s[k][1]):gl.uniform1f(u(k),s[k]);gl.drawArrays(gl.TRIANGLES,0,3)}}
 function size(){const r=canvas.getBoundingClientRect(),k=Math.min(devicePixelRatio||1,2)/1.6;canvas.width=Math.ceil(r.width*k);canvas.height=Math.ceil(r.height*k)}
 addEventListener('resize',size);size();
 pick('Teils bewölkt');mix=1;cur=to;
