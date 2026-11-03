@@ -16,7 +16,10 @@ adb logcat -c
 
 # 1. App mit echten Daten
 adb shell am start -n $PKG/.MainActivity
-sleep 50
+sleep 25
+shot app-0-was-ist-neu
+adb shell input keyevent KEYCODE_BACK
+sleep 25
 shot app-1-oben
 adb shell am force-stop $PKG
 

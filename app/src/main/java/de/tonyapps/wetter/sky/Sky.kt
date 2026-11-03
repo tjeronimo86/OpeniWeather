@@ -196,10 +196,11 @@ fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier) {
         while (true) {
             withFrameNanos { now ->
                 time = ((now - start) / 1_000_000_000f + 40f) % 21600f
-                if (++frames == 90) {
+                frames++
+                val window = now - windowStart
+                if (window > 1_200_000_000L) {
                     // Unter rund 40 Bildern pro Sekunde eine Stufe groeber rendern
-                    val average = (now - windowStart) / frames
-                    if (average > 25_000_000L && scale < 3f) scale += .5f
+                    if (window / frames > 25_000_000L && scale < 4f) scale += .5f
                     windowStart = now
                     frames = 0
                 }

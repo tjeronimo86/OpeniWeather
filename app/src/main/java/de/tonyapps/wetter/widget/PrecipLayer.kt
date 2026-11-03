@@ -20,31 +20,31 @@ object PrecipLayer {
     private const val RAIN_FRAMES = 10
     private const val SNOW_FRAMES = 16
 
-    fun render(width: Int, height: Int, p: SkyParams): PrecipLoop? = when {
-        p.snow > .05f && p.rain < .05f -> PrecipLoop(snow(width, height, p.snow), 140)
+    /** `unit` ist die Pixelzahl pro dp in dieser Ebene, so bleiben Tropfen in jeder Widget-Groesse gleich fein. */
+    fun render(width: Int, height: Int, unit: Float, p: SkyParams): PrecipLoop? = when {
+        p.snow > .05f && p.rain < .05f -> PrecipLoop(snow(width, height, unit, p.snow), 140)
         p.rain > .05f -> {
-            val frames = rain(width, height, p.rain, p.snow)
-            PrecipLoop(if (p.storm > .5f) withLightning(frames, width, height) else frames, 80)
+            val frames = rain(width, height, unit, p.rain, p.snow)
+            PrecipLoop(if (p.storm > .5f) withLightning(frames, width, height, unit) else frames, 80)
         }
         else -> null
     }
 
     private fun blank(width: Int, height: Int) = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
 
-    private fun rain(width: Int, height: Int, rain: Float, snow: Float): List<Bitmap> {
+    private fun rain(width: Int, height: Int, unit: Float, rain: Float, snow: Float): List<Bitmap> {
         val random = Random(7)
-        val unit = height / 160f
-        val count = (width * height / (unit * unit) * rain * .05f).toInt().coerceIn(30, 420)
+        val count = (width * height / (unit * unit) * rain * .012f).toInt().coerceIn(30, 520)
         class Drop(val x: Float, val y: Float, val length: Float, val alpha: Int, val laps: Int, val thick: Float)
         val drops = List(count) {
             val near = random.nextFloat()
             Drop(
                 x = random.nextFloat() * width * 1.2f,
                 y = random.nextFloat(),
-                length = (8f + near * 12f) * unit,
-                alpha = (46 + near * 90).toInt(),
+                length = (9f + near * 11f) * unit,
+                alpha = (40 + near * 70).toInt(),
                 laps = 1 + (near * 1.99f).toInt(),
-                thick = (.45f + near * .4f) * unit,
+                thick = (.35f + near * .3f) * unit,
             )
         }
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeCap = Paint.Cap.ROUND }
@@ -72,10 +72,9 @@ object PrecipLayer {
         }
     }
 
-    private fun snow(width: Int, height: Int, snow: Float): List<Bitmap> {
+    private fun snow(width: Int, height: Int, unit: Float, snow: Float): List<Bitmap> {
         val random = Random(5)
-        val unit = height / 160f
-        val count = (width * height / (unit * unit) * snow * .012f).toInt().coerceIn(24, 160)
+        val count = (width * height / (unit * unit) * snow * .004f).toInt().coerceIn(24, 220)
         class Flake(val x: Float, val y: Float, val r: Float, val alpha: Int, val sway: Float, val phase: Float)
         val flakes = List(count) {
             val near = random.nextFloat()
@@ -104,7 +103,7 @@ object PrecipLayer {
     }
 
     /** Drei Durchlaeufe Regen, im mittleren ein Blitz mit Nachleuchten. */
-    private fun withLightning(rain: List<Bitmap>, width: Int, height: Int): List<Bitmap> {
+    private fun withLightning(rain: List<Bitmap>, width: Int, height: Int, unit: Float): List<Bitmap> {
         val base = rain[0]
         val bolt = Path()
         val random = Random(11)
@@ -121,8 +120,7 @@ object PrecipLayer {
             val bitmap = base.copy(Bitmap.Config.ARGB_8888, true)
             val c = Canvas(bitmap)
             c.drawColor(0xC8D2FF or (sky shl 24))
-            val unit = height / 160f
-            val glow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                val glow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.STROKE
                 strokeWidth = 3.5f * unit
                 strokeJoin = Paint.Join.ROUND

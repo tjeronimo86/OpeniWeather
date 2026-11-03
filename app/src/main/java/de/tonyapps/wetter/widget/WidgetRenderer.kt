@@ -116,7 +116,7 @@ class WidgetRenderer(private val context: Context) {
         // Drei Viertel des Rests: Ein Gewitter braucht zusaetzliche Blitzbilder
         val frames = if (p.storm > .5f) 14f else 16f
         val precipScale = min(.6f, sqrt((budget * 38 / 100) / (frames * 4f * fullW * fullH)))
-        return WidgetLayers(clouds, PrecipLayer.render((fullW * precipScale).toInt(), (fullH * precipScale).toInt(), p))
+        return WidgetLayers(clouds, PrecipLayer.render((fullW * precipScale).toInt(), (fullH * precipScale).toInt(), density * precipScale, p))
     }
 
     private fun skyOf(w: Weather?): SkyParams = w?.let { skyFor(it) } ?: SkyParams(cloud = .3f)
