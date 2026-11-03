@@ -6,10 +6,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,11 +39,17 @@ fun CardTitle(glyph: Glyph, title: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** Startwert 0, laeuft nach `delayMs` auf 1. Fuer alle Einblend-Animationen der Karten. */
+/**
+ * Startwert 0, laeuft nach `delayMs` auf 1. Fuer die Einblend-Animationen der Karten.
+ * Jede laeuft nur einmal: Kommt eine Karte beim Wischen zurueck, ist sie sofort fertig.
+ */
 @Composable
 fun rememberReveal(delayMs: Long = 0, durationMs: Int = 900): State<Float> {
-    val a = remember { Animatable(0f) }
+    var played by rememberSaveable { mutableStateOf(false) }
+    val a = remember { Animatable(if (played) 1f else 0f) }
     LaunchedEffect(Unit) {
+        if (played) return@LaunchedEffect
+        played = true
         delay(delayMs)
         a.animateTo(1f, tween(durationMs, easing = FastOutSlowInEasing))
     }
@@ -111,15 +118,10 @@ fun HourlyCard(w: Weather, key: Any, sticky: StickyContext, onOpen: () -> Unit) 
             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            itemsIndexed(list) { index, slot ->
-                val appear by rememberReveal(index.coerceAtMost(8) * 45L, 480)
+            items(list) { slot ->
                 Column(
                     Modifier
                         .width(62.dp)
-                        .graphicsLayer {
-                            alpha = appear
-                            translationY = (1f - appear) * 22f
-                        }
                         .clickable(onClick = onOpen),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {

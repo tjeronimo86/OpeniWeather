@@ -35,6 +35,10 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk \
              out/wetter-${{ github.run_number }}.apk
 
+      - name: Update-Verlauf lesen
+        id: notes
+        run: echo "version=$(python3 tools/ci/release_notes.py)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/upload-artifact@v4
         with:
           name: wetter-apk
@@ -44,6 +48,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Wetter Build ${{ github.run_number }}
-          prerelease: true
+          name: Wetter ${{ steps.notes.outputs.version }} (Build ${{ github.run_number }})
+          body_path: out/notes.md
+          make_latest: true
           files: out/*.apk

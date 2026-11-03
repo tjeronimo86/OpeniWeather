@@ -17,7 +17,7 @@ export function compileSky(canvas, src) {
   const u = n => gl.getUniformLocation(p,n);
   return (scene, t) => {
     gl.viewport(0,0,canvas.width,canvas.height);
-    gl.uniform2f(u('uRes'),canvas.width,canvas.height); gl.uniform1f(u('uTime'),t); gl.uniform1f(u('uCloudTime'),t);
+    gl.uniform2f(u('uRes'),canvas.width,canvas.height); gl.uniform1f(u('uTime'),t); gl.uniform1f(u('uCloudTime'),t); gl.uniform1f(u('uSunVis'),1);
     for (const [k,v] of Object.entries(scene)) Array.isArray(v) ? gl.uniform2f(u(k),v[0],v[1]) : gl.uniform1f(u(k),v);
     gl.drawArrays(gl.TRIANGLES,0,3);
   };

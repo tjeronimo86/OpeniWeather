@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.*
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
+import de.tonyapps.wetter.data.Changelog
 import de.tonyapps.wetter.data.Place
 import de.tonyapps.wetter.data.WeatherViewModel
 import de.tonyapps.wetter.sky.*
@@ -63,16 +65,34 @@ fun WetterApp(openPlace: String? = null, vm: WeatherViewModel = viewModel()) {
         var mapPlace by remember { mutableStateOf<Place?>(null) }
         var detail by remember { mutableStateOf<DetailRequest?>(null) }
         var preview by remember { mutableStateOf<Place?>(null) }
+        var showNews by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) { if (Changelog.isNew(context)) showNews = true }
 
         // Himmel je Seite. Zwischen den Seiten wird nicht ueberblendet, sondern gerechnet:
         // Die Parameter beider Orte werden passend zur Wischposition gemischt.
         val skies: List<SkyParams> = vm.places.map { p -> vm.weather[p.id]?.let { skyFor(it) } ?: SkyParams(cloud = .3f) }
         val demo = vm.demoScene
         val settled = pager.settledPage.coerceIn(0, (skies.size - 1).coerceAtLeast(0))
-        val base = if (demo >= 0) DEMO_SCENES[demo].second else skies.getOrElse(settled) { SkyParams() }
-        val smooth by rememberSmoothSky(base, snapKey = if (demo >= 0) "demo" else settled)
-        val latestSkies by rememberUpdatedState(skies)
+        val demoSky by rememberSmoothSky(if (demo >= 0) DEMO_SCENES[demo].second else skies.getOrElse(settled) { SkyParams() })
         val isDemo by rememberUpdatedState(demo >= 0)
+
+        // Neue Wetterdaten blenden sanft ein. Die Seitenposition bleibt davon getrennt,
+        // sonst zeigt das Ende eines Wischens kurz den Himmel des vorherigen Orts.
+        var skyFrom by remember { mutableStateOf(skies) }
+        var skyTo by remember { mutableStateOf(skies) }
+        val skyMix = remember { Animatable(1f) }
+        LaunchedEffect(skies) {
+            if (skies != skyTo) {
+                skyFrom = skyTo
+                skyTo = skies
+                skyMix.snapTo(0f)
+                skyMix.animateTo(1f, tween(1600))
+            }
+        }
+        val skyAt: (Int) -> SkyParams = { i ->
+            val target = skyTo.getOrElse(i) { SkyParams() }
+            lerpSky(skyFrom.getOrElse(i) { target }, target, skyMix.value)
+        }
 
         val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
         val barHeight = 52.dp
@@ -80,13 +100,15 @@ fun WetterApp(openPlace: String? = null, vm: WeatherViewModel = viewModel()) {
         Box(Modifier.fillMaxSize().background(Color(0xFF123F7D))) {
             SkyBackground({
                 val offset = pager.currentPageOffsetFraction
-                val list = latestSkies
-                if (isDemo || abs(offset) < .001f || list.isEmpty()) {
-                    smooth
-                } else {
-                    val page = pager.currentPage.coerceIn(0, list.lastIndex)
-                    val other = (if (offset > 0) page + 1 else page - 1).coerceIn(0, list.lastIndex)
-                    lerpSky(list[page], list[other], abs(offset))
+                val last = (pager.pageCount - 1).coerceAtLeast(0)
+                val page = pager.currentPage.coerceIn(0, last)
+                when {
+                    isDemo -> demoSky
+                    abs(offset) < .001f -> skyAt(page)
+                    else -> {
+                        val other = (if (offset > 0) page + 1 else page - 1).coerceIn(0, last)
+                        lerpPages(skyAt(page), skyAt(other), abs(offset))
+                    }
                 }
             })
 
@@ -145,6 +167,7 @@ fun WetterApp(openPlace: String? = null, vm: WeatherViewModel = viewModel()) {
                     },
                     onRemove = { vm.remove(it) },
                     onClose = { showList = false },
+                    onNews = { showNews = true },
                 )
             }
 
@@ -158,6 +181,14 @@ fun WetterApp(openPlace: String? = null, vm: WeatherViewModel = viewModel()) {
                         preview = null
                     },
                 )
+            }
+
+            AnimatedVisibility(
+                visible = showNews,
+                enter = slideInVertically(spring(dampingRatio = .9f, stiffness = 320f)) { it } + fadeIn(),
+                exit = slideOutVertically(tween(260)) { it } + fadeOut(),
+            ) {
+                WhatsNewScreen { showNews = false }
             }
 
             AnimatedVisibility(

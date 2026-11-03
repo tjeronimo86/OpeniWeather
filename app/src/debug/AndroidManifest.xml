@@ -12,6 +12,7 @@
             <intent-filter>
                 <action android:name="de.tonyapps.wetter.DEBUG_RENDER" />
                 <action android:name="de.tonyapps.wetter.DEBUG_PIN" />
+                <action android:name="de.tonyapps.wetter.DEBUG_SCENE" />
             </intent-filter>
         </receiver>
     </application>

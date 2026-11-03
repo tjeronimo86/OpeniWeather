@@ -43,6 +43,7 @@ fun PlacesScreen(
     onPreview: (Place) -> Unit,
     onRemove: (Place) -> Unit,
     onClose: () -> Unit,
+    onNews: () -> Unit,
 ) {
     BackHandler(onBack = onClose)
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -106,6 +107,16 @@ fun PlacesScreen(
             LazyColumn(contentPadding = PaddingValues(bottom = bottom + 20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 itemsIndexed(places, key = { _, p -> p.id }) { i, p ->
                     PlaceRow(p, weather[p.id], { onPick(i) }, { onRemove(p) })
+                }
+                item(key = "news") {
+                    Text(
+                        "Was ist neu",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF0A84FF),
+                        modifier = Modifier.fillMaxWidth().clickable(onClick = onNews).padding(vertical = 14.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
                 }
             }
         }

@@ -52,6 +52,7 @@ data class SkyParams(
     val sunX: Float = 0.72f,
     val sunY: Float = 0.14f,
     val moon: Float = 0.5f,
+    val sunVis: Float = 1f,
 )
 
 private fun mix(a: Float, b: Float, t: Float) = a + (b - a) * t
@@ -68,7 +69,23 @@ fun lerpSky(a: SkyParams, b: SkyParams, t: Float) = SkyParams(
     sunX = mix(a.sunX, b.sunX, t),
     sunY = mix(a.sunY, b.sunY, t),
     moon = mix(a.moon, b.moon, t),
+    sunVis = mix(a.sunVis, b.sunVis, t),
 )
+
+/**
+ * Mischung beim Ortswechsel: Wolken und Licht gehen fliessend ineinander ueber.
+ * Sonne und Mond duerfen nicht quer ueber den Himmel gleiten, sie blenden am alten
+ * Platz aus und am neuen ein.
+ */
+fun lerpPages(a: SkyParams, b: SkyParams, t: Float): SkyParams {
+    val near = if (t < .5f) a else b
+    return lerpSky(a, b, t).copy(
+        sunX = near.sunX,
+        sunY = near.sunY,
+        moon = near.moon,
+        sunVis = kotlin.math.abs(1f - 2f * t),
+    )
+}
 
 /** Die Szenen des Vorschau-Modus (lange auf den Ortsnamen druecken). */
 val DEMO_SCENES: List<Pair<String, SkyParams>> = listOf(
@@ -133,20 +150,13 @@ fun skyFor(w: Weather): SkyParams {
     }
 }
 
-/** Gleitet weich auf neue Zielwerte, z. B. wenn frische Daten eine andere Wetterlage bringen. */
+/** Gleitet weich auf neue Zielwerte, z. B. beim Durchschalten der Vorschau-Szenen. */
 @Composable
-fun rememberSmoothSky(target: SkyParams, snapKey: Any? = null, durationMs: Int = 1600): State<SkyParams> {
+fun rememberSmoothSky(target: SkyParams, durationMs: Int = 1600): State<SkyParams> {
     val state = remember { mutableStateOf(target) }
-    val lastKey = remember { mutableStateOf(snapKey) }
-    LaunchedEffect(target, snapKey) {
+    LaunchedEffect(target) {
         val from = state.value
         if (from == target) return@LaunchedEffect
-        // Beim Blaettern hat die Seitenbewegung schon geblendet: dann direkt uebernehmen.
-        if (lastKey.value != snapKey) {
-            lastKey.value = snapKey
-            state.value = target
-            return@LaunchedEffect
-        }
         val progress = Animatable(0f)
         progress.animateTo(1f, tween(durationMs, easing = FastOutSlowInEasing)) {
             state.value = lerpSky(from, target, value)
@@ -163,11 +173,11 @@ private fun loadShader(context: Context): RuntimeShader? = runCatching {
  * Ein Shader malt den kompletten Himmel. `params` wird erst beim Zeichnen gelesen, die
  * Animation laeuft also ohne Recomposition.
  *
- * Er rendert bewusst in reduzierter Aufloesung in eine eigene Ebene und skaliert hoch:
- * Wolken sind weich, und das Display wuerde sonst pro Frame ueber 4 Mio. Pixel rechnen.
+ * Er rendert in eine eigene Ebene und skaliert hoch. Startwert ist 2/3 der Display-Aufloesung.
+ * Haelt ein Geraet das nicht, senkt die Bildraten-Sicherung die Aufloesung stufenweise.
  */
 @Composable
-fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier, scale: Float = 2.5f) {
+fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val shader = remember { loadShader(context) }
     val currentParams by rememberUpdatedState(params)
@@ -178,10 +188,22 @@ fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier, scale:
     }
     val brush = remember { ShaderBrush(shader) }
     var time by remember { mutableFloatStateOf(0f) }
+    var scale by remember { mutableFloatStateOf(1.5f) }
     LaunchedEffect(Unit) {
         val start = withFrameNanos { it }
+        var windowStart = start
+        var frames = 0
         while (true) {
-            withFrameNanos { now -> time = ((now - start) / 1_000_000_000f + 40f) % 21600f }
+            withFrameNanos { now ->
+                time = ((now - start) / 1_000_000_000f + 40f) % 21600f
+                if (++frames == 90) {
+                    // Unter rund 40 Bildern pro Sekunde eine Stufe groeber rendern
+                    val average = (now - windowStart) / frames
+                    if (average > 25_000_000L && scale < 3f) scale += .5f
+                    windowStart = now
+                    frames = 0
+                }
+            }
         }
     }
 
@@ -216,6 +238,7 @@ fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier, scale:
                 shader.setFloatUniform("uDusk", p.dusk)
                 shader.setFloatUniform("uSun", p.sunX, p.sunY)
                 shader.setFloatUniform("uMoon", p.moon)
+                shader.setFloatUniform("uSunVis", p.sunVis)
                 drawRect(brush, Offset.Zero, size)
             },
     )

@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.widget.RemoteViews
@@ -17,6 +18,7 @@ import de.tonyapps.wetter.data.Place
 import de.tonyapps.wetter.data.Store
 import de.tonyapps.wetter.data.Weather
 import de.tonyapps.wetter.data.conditionText
+import de.tonyapps.wetter.sky.SkyParams
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,6 +31,9 @@ private const val MAX_AGE_MS = 20 * 60 * 1000L
 
 object Widgets {
     private val lock = Mutex()
+
+    /** Nur fuer den Emulator-Test: erzwingt eine Wetterlage. */
+    var debugSky: SkyParams? = null
 
     private val PROVIDERS: Map<WidgetStyle, Class<out WeatherWidget>> = mapOf(
         WidgetStyle.SMALL to SmallWidget::class.java,
@@ -73,7 +78,7 @@ object Widgets {
                 decorate(context, views, place, id, description)
                 try {
                     manager.updateAppWidget(id, views)
-                } catch (e: IllegalArgumentException) {
+                } catch (e: RuntimeException) {
                     // Android begrenzt den Bildspeicher pro Widget: dann eben als Standbild
                     Log.w("Widgets", "Schleife zu gross", e)
                     val still = stillViews(context, renderer, style, place, weather, width, height)
@@ -93,16 +98,22 @@ object Widgets {
         width: Int,
         height: Int,
     ): RemoteViews {
-        val frames = renderer.skyLoop(weather, width, height)
-        if (frames.isEmpty()) return stillViews(context, renderer, style, place, weather, width, height)
+        val layers = renderer.layers(weather, width, height, debugSky)
+        if (layers.clouds.isEmpty()) return stillViews(context, renderer, style, place, weather, width, height)
         val views = RemoteViews(context.packageName, R.layout.widget_root)
-        frames.forEach { frame ->
-            val child = RemoteViews(context.packageName, R.layout.widget_frame)
-            child.setImageViewBitmap(R.id.widget_frame, frame)
-            views.addView(R.id.widget_sky, child)
+        layers.clouds.forEach { views.addView(R.id.widget_sky, frameView(context, it)) }
+        layers.precip?.let { loop ->
+            loop.frames.forEach { views.addView(R.id.widget_precip, frameView(context, it)) }
+            views.setInt(R.id.widget_precip, "setFlipInterval", loop.intervalMs)
         }
-        views.setImageViewBitmap(R.id.widget_image, renderer.overlay(style, place, weather, width, height))
+        views.setImageViewBitmap(R.id.widget_image, renderer.overlay(style, place, weather, width, height, debugSky))
         return views
+    }
+
+    private fun frameView(context: Context, bitmap: Bitmap): RemoteViews {
+        val view = RemoteViews(context.packageName, R.layout.widget_frame)
+        view.setImageViewBitmap(R.id.widget_frame, bitmap)
+        return view
     }
 
     private fun stillViews(

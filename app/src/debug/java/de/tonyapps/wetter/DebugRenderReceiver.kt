@@ -22,6 +22,11 @@ import java.io.File
 /** Schreibt alle Widget-Stile als PNG; so laesst sich das Ergebnis ohne Launcher ansehen. */
 class DebugRenderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == "de.tonyapps.wetter.DEBUG_SCENE") {
+            Widgets.debugSky = DEMO_SCENES[intent.getIntExtra("scene", 3)].second
+            CoroutineScope(Dispatchers.IO).launch { Widgets.updateAll(context) }
+            return
+        }
         if (intent.action == "de.tonyapps.wetter.DEBUG_PIN") {
             val manager = AppWidgetManager.getInstance(context)
             val style = WidgetStyle.valueOf(intent.getStringExtra("style") ?: "LARGE")
@@ -44,11 +49,13 @@ class DebugRenderReceiver : BroadcastReceiver() {
                     val sky = DEMO_SCENES[i].second
                     save(renderer.render(WidgetStyle.SMALL, place, weather, 158, 158, sky), File(dir, "scene$i.png"))
                 }
-                listOf(3, 4).forEach { i ->
+                listOf(3, 4, 5, 1).forEach { i ->
                     val started = System.currentTimeMillis()
-                    val loop = renderer.skyLoop(weather, 338, 158, DEMO_SCENES[i].second)
-                    Log.i("WetterDebug", "loop scene$i frames=${loop.size} ms=${System.currentTimeMillis() - started} bytes=${loop.sumOf { it.allocationByteCount }}")
-                    loop.forEachIndexed { n, frame -> save(frame, File(dir, "loop${i}_$n.png")) }
+                    val layers = renderer.layers(weather, 338, 158, DEMO_SCENES[i].second)
+                    val all = (layers.clouds.toSet() + layers.precip?.frames.orEmpty().toSet())
+                    Log.i("WetterDebug", "layers scene$i clouds=${layers.clouds.size} ${layers.clouds.firstOrNull()?.width}x${layers.clouds.firstOrNull()?.height} precip=${layers.precip?.frames?.size} ms=${System.currentTimeMillis() - started} bytes=${all.sumOf { it.allocationByteCount }}")
+                    layers.clouds.firstOrNull()?.let { save(it, File(dir, "cloud$i.png")) }
+                    layers.precip?.frames?.forEachIndexed { n, frame -> if (n % 7 == 0 || n in 13..16) save(frame, File(dir, "precip${i}_$n.png")) }
                 }
                 Log.i("WetterDebug", "render done")
             } catch (t: Throwable) {

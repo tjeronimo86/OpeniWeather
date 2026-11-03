@@ -2,7 +2,6 @@ package de.tonyapps.wetter.widget
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.ColorSpace
 import android.graphics.HardwareRenderer
 import android.graphics.Paint
@@ -12,12 +11,14 @@ import android.graphics.RuntimeShader
 import android.hardware.HardwareBuffer
 import android.media.ImageReader
 import de.tonyapps.wetter.sky.SkyParams
+import kotlin.math.PI
+import kotlin.math.cos
 
-const val SKY_FRAMES = 20
-private const val STEP = 0.1f
+/** Eigene Bilder der Wolkenschleife; hin und zurueck ergibt das rund 4 Sekunden. */
+const val SKY_FRAMES = 10
 
-/** Wolken ziehen im Widget schneller, sonst saehe man in 2 Sekunden Schleife nichts. */
-private const val CLOUD_SPEED = 7f
+/** Wegstrecke der Wolken in Shader-Sekunden. */
+private const val CLOUD_TRAVEL = 4f
 
 /**
  * Rendert den App-Shader in Bitmaps, damit Widgets denselben Himmel zeigen.
@@ -26,38 +27,24 @@ private const val CLOUD_SPEED = 7f
 object SkyBitmap {
     /** Ein Standbild. Null, wenn es nicht klappt; das Widget nimmt dann einen Verlauf. */
     fun render(context: Context, width: Int, height: Int, p: SkyParams): Bitmap? = runCatching {
-        Session(context, width, height, p).use { it.frame(41f, 0f) }
+        Session(context, width, height, p).use { it.frame(41f, 41f) }
     }.getOrNull()
 
     /**
-     * Eine nahtlose Schleife. Der Himmel laeuft nicht von selbst im Kreis, also wird
-     * ueberblendet: Jedes Bild mischt seinen Zeitpunkt mit demselben Zeitpunkt eine
-     * Schleifenlaenge frueher. Das letzte Bild landet so genau vor dem ersten.
+     * Eine nahtlose Wolkenschleife ohne Ueberblenden, jedes Bild bleibt scharf: Die Wolken
+     * ziehen langsam hin und zurueck und werden an den Wendepunkten sanft abgebremst.
+     * Fuer den Rueckweg werden dieselben Bitmaps wiederverwendet, das kostet keinen Speicher.
      */
-    fun loop(context: Context, width: Int, height: Int, p: SkyParams): List<Bitmap> = runCatching {
+    fun clouds(context: Context, width: Int, height: Int, p: SkyParams): List<Bitmap> = runCatching {
         Session(context, width, height, p).use { session ->
-            val start = 41f
-            val frames = List(SKY_FRAMES) { i ->
-                val time = start + i * STEP
-                val now = session.frame(time, 0f)
-                val earlier = session.frame(time - SKY_FRAMES * STEP, 0f)
-                val mixed = now.copy(Bitmap.Config.ARGB_8888, true)
-                val blend = Paint().apply { alpha = 255 * i / SKY_FRAMES }
-                Canvas(mixed).drawBitmap(earlier, 0f, 0f, blend)
-                now.recycle()
-                earlier.recycle()
-                mixed
+            val forward = List(SKY_FRAMES) { i ->
+                val phase = i / (SKY_FRAMES - 1f)
+                val eased = (1f - cos(phase * PI.toFloat())) / 2f
+                session.frame(41f + i * .25f, 41f + eased * CLOUD_TRAVEL)
             }
-            if (p.storm > .5f) lightning(session, frames) else frames
+            forward + forward.reversed().drop(1).dropLast(1)
         }
     }.getOrDefault(emptyList())
-
-    /** Drei Bilder mit Blitz ersetzen eine Stelle der Schleife; der Shader blitzt bei t = 7,87. */
-    private fun lightning(session: Session, frames: List<Bitmap>): List<Bitmap> {
-        val out = frames.toMutableList()
-        listOf(7.87f, 7.97f, 8.1f).forEachIndexed { i, time -> out[12 + i] = session.frame(time, 1f) }
-        return out
-    }
 
     private class Session(context: Context, val width: Int, val height: Int, val p: SkyParams) : AutoCloseable {
         private val shader = RuntimeShader(context.assets.open("shaders/sky.agsl").bufferedReader().use { it.readText() })
@@ -73,8 +60,11 @@ object SkyBitmap {
             shader.setFloatUniform("uRes", width.toFloat(), height.toFloat())
             shader.setFloatUniform("uCloud", p.cloud)
             shader.setFloatUniform("uGrey", p.grey)
-            shader.setFloatUniform("uRain", p.rain)
-            shader.setFloatUniform("uSnow", p.snow)
+            // Niederschlag und Blitze sind im Widget eine eigene Ebene
+            shader.setFloatUniform("uRain", 0f)
+            shader.setFloatUniform("uSnow", 0f)
+            shader.setFloatUniform("uStorm", 0f)
+            shader.setFloatUniform("uSunVis", 1f)
             shader.setFloatUniform("uFog", p.fog)
             shader.setFloatUniform("uDay", p.day)
             shader.setFloatUniform("uDusk", p.dusk)
@@ -85,10 +75,9 @@ object SkyBitmap {
             renderer.setContentRoot(node)
         }
 
-        fun frame(time: Float, storm: Float): Bitmap {
+        fun frame(time: Float, cloudTime: Float): Bitmap {
             shader.setFloatUniform("uTime", time)
-            shader.setFloatUniform("uCloudTime", 41f + (time - 41f) * CLOUD_SPEED)
-            shader.setFloatUniform("uStorm", storm)
+            shader.setFloatUniform("uCloudTime", cloudTime)
             paint.shader = shader
             val canvas = node.beginRecording()
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)

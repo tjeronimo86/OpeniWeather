@@ -37,13 +37,13 @@ import kotlin.math.PI
 import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.sin
+import kotlin.math.sqrt
 import androidx.compose.ui.graphics.Canvas as ComposeCanvas
 
 /** Leichte Abdunklung, damit weisse Schrift auch vor hellen Wolken lesbar bleibt. */
 private const val DIM = 0x1F000000
 
-/** Die Schleife braucht wenig Aufloesung, spart aber viel Speicher pro Bild. */
-private const val SKY_DOWNSCALE = 2.5f
+class WidgetLayers(val clouds: List<Bitmap>, val precip: PrecipLoop?)
 
 enum class WidgetStyle(val defaultW: Int, val defaultH: Int) {
     SMALL(158, 158),
@@ -83,7 +83,7 @@ class WidgetRenderer(private val context: Context) {
     }
 
     /** Nur Text, Symbole und Balken auf transparentem Grund; liegt ueber der Himmels-Schleife. */
-    fun overlay(style: WidgetStyle, place: Place, w: Weather?, widthDp: Int, heightDp: Int): Bitmap {
+    fun overlay(style: WidgetStyle, place: Place, w: Weather?, widthDp: Int, heightDp: Int, sky: SkyParams? = null): Bitmap {
         val width = widthDp.coerceIn(100, 600).toFloat()
         val height = heightDp.coerceIn(100, 700).toFloat()
         val density = density()
@@ -91,16 +91,32 @@ class WidgetRenderer(private val context: Context) {
         val c = Canvas(bitmap)
         c.scale(density, density)
         c.drawColor(DIM)
+        // Bei Regen fehlt die Abdunklung aus dem Shader
+        if ((sky ?: skyOf(w)).rain > .05f) c.drawColor(0x18000000)
         content(c, style, place, w, width, height)
         return bitmap
     }
 
-    /** Die Himmels-Schleife, leer, wenn der Shader nicht laeuft. */
-    fun skyLoop(w: Weather?, widthDp: Int, heightDp: Int, sky: SkyParams? = null): List<Bitmap> {
+    /**
+     * Teilt den Bildspeicher auf. Android erlaubt pro Widget das 1,5-Fache eines Vollbilds;
+     * 80 % davon nutzen wir, die Wolken bekommen den groessten Teil.
+     */
+    fun layers(w: Weather?, widthDp: Int, heightDp: Int, sky: SkyParams? = null): WidgetLayers {
+        val p = sky ?: skyOf(w)
+        val metrics = context.resources.displayMetrics
         val density = density()
-        val width = widthDp.coerceIn(100, 600) * density / SKY_DOWNSCALE
-        val height = heightDp.coerceIn(100, 700) * density / SKY_DOWNSCALE
-        return SkyBitmap.loop(context, width.toInt(), height.toInt(), sky ?: skyOf(w))
+        val fullW = widthDp.coerceIn(100, 600) * density
+        val fullH = heightDp.coerceIn(100, 700) * density
+        val budget = metrics.widthPixels * metrics.heightPixels * 6L * 8 / 10 - (fullW * fullH * 4).toLong()
+        val wet = p.rain > .05f || p.snow > .05f
+        val cloudBytes = budget * (if (wet) 62 else 100) / 100
+        val cloudScale = min(1f, sqrt(cloudBytes / (SKY_FRAMES * 4f * fullW * fullH)))
+        val clouds = SkyBitmap.clouds(context, (fullW * cloudScale).toInt(), (fullH * cloudScale).toInt(), p)
+        if (clouds.isEmpty() || !wet) return WidgetLayers(clouds, null)
+        // Drei Viertel des Rests: Ein Gewitter braucht zusaetzliche Blitzbilder
+        val frames = if (p.storm > .5f) 14f else 16f
+        val precipScale = min(.6f, sqrt((budget * 38 / 100) / (frames * 4f * fullW * fullH)))
+        return WidgetLayers(clouds, PrecipLayer.render((fullW * precipScale).toInt(), (fullH * precipScale).toInt(), p))
     }
 
     private fun skyOf(w: Weather?): SkyParams = w?.let { skyFor(it) } ?: SkyParams(cloud = .3f)

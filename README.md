@@ -3,6 +3,8 @@
 Private Android-App im Stil der iOS-Wetter-App. Nicht für den Vertrieb gedacht.
 Kotlin und Jetpack Compose, ab Android 13 (AGSL-Shader).
 
+[Update-Verlauf](changelog/CHANGELOG.md)
+
 ## Bauen
 
 - **GitHub:** Bei jedem Push auf `main` baut die Action eine APK und legt sie unter *Releases* ab.
