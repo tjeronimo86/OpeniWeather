@@ -1,5 +1,9 @@
 # Update-Verlauf
 
+## 1.6 – 3. November 2026
+- Softwareversion unten in der Ortsliste
+- Link zur neuesten Version auf GitHub
+
 ## 1.5 – 3. November 2026
 - Widget-Wolken laufen jetzt flüssig: Jedes Bild blendet weich ins nächste, statt zu springen
 - Die Wolken ziehen immer in eine Richtung und gehen nahtlos in die nächste Runde über, kein Hin und Her mehr

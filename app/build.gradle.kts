@@ -13,7 +13,9 @@ android {
         // Die Himmels-Animation nutzt AGSL (RuntimeShader), das gibt es ab Android 13.
         minSdk = 33
         targetSdk = 35
-        versionCode = 7
+        // Die Build-Nummer aus GitHub Actions: Anzeige in der App und Release passen zusammen
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 8
+        versionName = "1.6"
         versionName = "1.5"
     }
 
