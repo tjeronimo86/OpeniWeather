@@ -5,7 +5,7 @@ PKG=de.tonyapps.wetter
 OUT=out/verify
 mkdir -p "$OUT"
 shot() { adb exec-out screencap -p > "$OUT/$1.png"; }
-page() { adb shell am start -S -n $PKG/.DebugShotActivity --ei scene "$1" --ei scroll "$2" --ei hi "$3"; }
+page() { adb shell am force-stop $PKG; sleep 3; adb shell am start -n $PKG/.DebugShotActivity --ei scene "$1" --ei scroll "$2" --ei hi "$3"; }
 
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell settings put global hide_error_dialogs 1
@@ -23,9 +23,9 @@ for lang in de en fr es pt-PT pl; do
   page 1 0 0; sleep 12; shot "lang-$lang-1"
   page 1 5 0; sleep 10; shot "lang-$lang-2"
   page 1 7 0; sleep 10; shot "lang-$lang-3"
-  adb shell am start -S -n $PKG/.MainActivity; sleep 12; shot "lang-$lang-4"
+  adb shell am force-stop $PKG; sleep 3; adb shell am start -n $PKG/.MainActivity; sleep 12; shot "lang-$lang-4"
   adb shell input keyevent KEYCODE_BACK; sleep 3
-  adb shell am start -S -n $PKG/.DebugMapActivity; sleep 12; shot "lang-$lang-5"
+  adb shell am force-stop $PKG; sleep 3; adb shell am start -n $PKG/.DebugMapActivity; sleep 12; shot "lang-$lang-5"
   adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_RENDER
   sleep 14
   adb shell am force-stop $PKG

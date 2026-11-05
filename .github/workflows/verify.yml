@@ -44,7 +44,7 @@ jobs:
           heap-size: 512M
           disk-size: 6G
           disable-animations: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -dns-server 8.8.8.8
+          emulator-options: -no-snapshot-save -no-window -gpu swangle_indirect -noaudio -no-boot-anim -dns-server 8.8.8.8
           script: timeout 3300 bash tools/ci/verify.sh
 
       - name: Ergebnis bereitstellen
