@@ -12,10 +12,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import de.tonyapps.wetter.R
+import de.tonyapps.wetter.data.tr
 import org.json.JSONObject
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 
 data class AppRelease(val build: Int, val title: String, val notes: List<String>, val url: String, val size: Long)
 
@@ -74,9 +77,9 @@ object Updater {
     }
 
     private fun reason(e: Exception): String = when {
-        e is IOException && e.message == "HTTP 404" -> "Keine Version gefunden. Ist das Repo öffentlich?"
-        e is IOException && e.message == "HTTP 403" -> "GitHub lässt gerade keine Abfrage zu. Versuche es später."
-        else -> "Keine Verbindung zu GitHub."
+        e is IOException && e.message == "HTTP 404" -> tr(R.string.u_err_404)
+        e is IOException && e.message == "HTTP 403" -> tr(R.string.u_err_403)
+        else -> tr(R.string.u_err_net)
     }
 
     private fun open(url: String): HttpURLConnection {
@@ -107,11 +110,15 @@ object Updater {
             ?: throw IOException("Keine APK")
         val url = apk.getString("browser_download_url")
         if (!url.startsWith(allowedDownload)) throw IOException("Unerwartete Quelle")
-        val notes = json.optString("body").lineSequence()
-            .filter { it.startsWith("- ") }
-            .map { it.removePrefix("- ").trim() }
-            .toList()
+        val notes = notesFor(json.optString("body"))
         return AppRelease(build, json.optString("name", "Build $build"), notes, url, apk.optLong("size", -1L))
+    }
+
+    /** Der Release-Text hat je einen Abschnitt Deutsch und English. */
+    private fun notesFor(body: String): List<String> {
+        val heading = if (Locale.getDefault().language == "de") "### Deutsch" else "### English"
+        val section = if (heading in body) body.substringAfter(heading).substringBefore("### ") else body
+        return section.lineSequence().filter { it.startsWith("- ") }.map { it.removePrefix("- ").trim() }.toList()
     }
 
     fun install(context: Context, release: AppRelease) {
@@ -163,14 +170,14 @@ object Updater {
                 }
             } catch (e: Exception) {
                 if (sessionId != -1) runCatching { installer.abandonSession(sessionId) }
-                state = UpdateState.Failed("Download abgebrochen. Prüfe die Verbindung.")
+                state = UpdateState.Failed(tr(R.string.u_err_download))
             }
         }
     }
 
     fun finished(success: Boolean, message: String?) {
         // Bei Erfolg beendet Android die App ohnehin, um sie zu ersetzen
-        if (!success) state = UpdateState.Failed(message ?: "Installation abgebrochen.")
+        if (!success) state = UpdateState.Failed(message ?: tr(R.string.u_err_install))
     }
 
     fun cancelled() {
@@ -190,8 +197,8 @@ class UpdateReceiver : BroadcastReceiver() {
             PackageInstaller.STATUS_FAILURE_ABORTED -> Updater.cancelled()
             PackageInstaller.STATUS_FAILURE_INCOMPATIBLE,
             PackageInstaller.STATUS_FAILURE_CONFLICT,
-            -> Updater.finished(false, "Das Update passt nicht zur installierten Version.")
-            PackageInstaller.STATUS_FAILURE_BLOCKED -> Updater.finished(false, "Android hat die Installation blockiert.")
+            -> Updater.finished(false, tr(R.string.u_err_conflict))
+            PackageInstaller.STATUS_FAILURE_BLOCKED -> Updater.finished(false, tr(R.string.u_err_blocked))
             else -> Updater.finished(false, intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE))
         }
     }

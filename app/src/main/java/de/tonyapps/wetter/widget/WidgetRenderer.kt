@@ -28,6 +28,7 @@ import de.tonyapps.wetter.data.conditionText
 import de.tonyapps.wetter.data.deg
 import de.tonyapps.wetter.data.hourLabel
 import de.tonyapps.wetter.data.kindOf
+import de.tonyapps.wetter.data.tr
 import de.tonyapps.wetter.data.weekdayShort
 import de.tonyapps.wetter.sky.SkyParams
 import de.tonyapps.wetter.sky.skyFor
@@ -127,7 +128,7 @@ class WidgetRenderer(private val context: Context) {
         val pad = 15f
         if (w == null || w.days.isEmpty()) {
             label(c, place.name, pad, pad + 14f, 15f, semi, width - 2 * pad)
-            label(c, "Wird geladen …", pad, height - pad, 13f, medium, width - 2 * pad)
+            label(c, tr(R.string.loading_short), pad, height - pad, 13f, medium, width - 2 * pad)
             return
         }
         when (style) {
@@ -241,7 +242,7 @@ class WidgetRenderer(private val context: Context) {
         label(c, cur.temp.deg(), pad - 2f, pad + 63f, 46f, light)
         icon(c, cur.code, cur.isDay, pad - 1f, height - pad - 47f, 21f)
         label(c, conditionText(cur.code, cur.isDay, cur.cloud), pad, height - pad - 15f, 12.5f, medium, width - 2 * pad)
-        label(c, "H:${w.today.max.deg()}  T:${w.today.min.deg()}", pad, height - pad, 12.5f, medium, width - 2 * pad)
+        label(c, tr(R.string.hi_lo, w.today.max.deg(), w.today.min.deg()), pad, height - pad, 12.5f, medium, width - 2 * pad)
     }
 
     private fun header(c: Canvas, place: Place, w: Weather, width: Float, pad: Float) {
@@ -251,7 +252,7 @@ class WidgetRenderer(private val context: Context) {
         label(c, cur.temp.deg(), pad - 2f, pad + 60f, 44f, light)
         icon(c, cur.code, cur.isDay, right - 23f, pad - 3f, 24f)
         label(c, conditionText(cur.code, cur.isDay, cur.cloud), right, pad + 37f, 12.5f, medium, width * .42f, Paint.Align.RIGHT)
-        label(c, "H:${w.today.max.deg()}  T:${w.today.min.deg()}", right, pad + 53f, 12.5f, medium, width * .42f, Paint.Align.RIGHT)
+        label(c, tr(R.string.hi_lo, w.today.max.deg(), w.today.min.deg()), right, pad + 53f, 12.5f, medium, width * .42f, Paint.Align.RIGHT)
     }
 
     private fun compactHeader(c: Canvas, place: Place, w: Weather, width: Float, pad: Float) {
@@ -268,7 +269,7 @@ class WidgetRenderer(private val context: Context) {
         hours.forEachIndexed { i, h ->
             val cx = x + col * (i + .5f)
             val now = i == 0
-            label(c, if (now) "Jetzt" else hourLabel(h.time, w.zone), cx, bottom - 44f, 11f, medium, col, Paint.Align.CENTER, 225)
+            label(c, if (now) tr(R.string.now) else hourLabel(h.time, w.zone), cx, bottom - 44f, 11f, medium, col, Paint.Align.CENTER, 225)
             icon(c, if (now) w.current.code else h.code, if (now) w.current.isDay else h.isDay, cx - 11f, bottom - 38f, 22f)
             label(c, (if (now) w.current.temp else h.temp).deg(), cx, bottom, 13.5f, medium, col, Paint.Align.CENTER)
         }
@@ -284,7 +285,7 @@ class WidgetRenderer(private val context: Context) {
         list.forEachIndexed { i, d ->
             val mid = top + h * (i + .5f)
             val base = mid + 4.5f
-            label(c, if (i == 0) "Heute" else weekdayShort(d), x, base, 13f, medium, 44f)
+            label(c, if (i == 0) tr(R.string.today) else weekdayShort(d), x, base, 13f, medium, 44f)
             icon(c, d.code, true, x + 46f, mid - 10f, 20f)
             val barX = x + 104f
             val barEnd = x + width - 32f
@@ -329,7 +330,7 @@ class WidgetRenderer(private val context: Context) {
             now < today.sunrise -> today.sunrise
             else -> w.upcomingDays.getOrNull(1)?.sunrise ?: today.sunrise
         }
-        label(c, if (nextSet) "SONNENUNTERGANG" else "SONNENAUFGANG", pad, pad + 10f, 10.5f, medium, width - 2 * pad, alpha = 190)
+        label(c, tr(if (nextSet) R.string.t_sunset else R.string.t_sunrise).uppercase(), pad, pad + 10f, 10.5f, medium, width - 2 * pad, alpha = 190)
         label(c, clock(next, w.zone), pad, pad + 38f, 27f, medium)
 
         val x0 = pad
@@ -373,7 +374,7 @@ class WidgetRenderer(private val context: Context) {
         fill.color = if (up) -1 else 0xFF8FA3BF.toInt()
         c.drawCircle(x0 + dx, dy, 3.8f, fill)
 
-        val other = if (nextSet) "Aufgang: ${clock(today.sunrise, w.zone)}" else "Untergang: ${clock(today.sunset, w.zone)}"
+        val other = if (nextSet) tr(R.string.rise_at, clock(today.sunrise, w.zone)) else tr(R.string.set_at, clock(today.sunset, w.zone))
         label(c, other, pad, height - pad, 12.5f, medium, width - 2 * pad)
     }
 }

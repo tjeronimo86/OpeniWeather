@@ -17,8 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import de.tonyapps.wetter.R
 import de.tonyapps.wetter.data.Place
 import de.tonyapps.wetter.data.Store
+import de.tonyapps.wetter.data.tr
 import de.tonyapps.wetter.ui.Hairline
 import de.tonyapps.wetter.ui.WetterTheme
 import kotlinx.coroutines.CoroutineScope
@@ -50,7 +52,7 @@ class WidgetConfigActivity : ComponentActivity() {
                         .statusBarsPadding()
                         .padding(16.dp),
                 ) {
-                    Text("Ort für das Widget", fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
+                    Text(tr(R.string.widget_pick_place), fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(12.dp))
                     LazyColumn {
                         items(places, key = { it.id }) { place ->

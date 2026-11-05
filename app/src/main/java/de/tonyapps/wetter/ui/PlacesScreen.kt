@@ -1,5 +1,6 @@
 package de.tonyapps.wetter.ui
 
+import de.tonyapps.wetter.R
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
@@ -68,8 +69,8 @@ fun PlacesScreen(
             .padding(top = top + 8.dp, start = 16.dp, end = 16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Wetter", fontSize = 32.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-            Text("Fertig", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0A84FF), modifier = Modifier.clickable(onClick = onClose))
+            Text(tr(R.string.app_name), fontSize = 32.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            Text(tr(R.string.done), fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0A84FF), modifier = Modifier.clickable(onClick = onClose))
         }
         Spacer(Modifier.height(10.dp))
         BasicTextField(
@@ -83,7 +84,7 @@ fun PlacesScreen(
                 Box(
                     Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0xFF1C1C1E)).padding(horizontal = 12.dp, vertical = 10.dp),
                 ) {
-                    if (query.isEmpty()) Text("Stadt oder Ort suchen", fontSize = 16.sp, color = Color.White.copy(alpha = .5f))
+                    if (query.isEmpty()) Text(tr(R.string.search_place), fontSize = 16.sp, color = Color.White.copy(alpha = .5f))
                     inner()
                 }
             },
@@ -100,7 +101,7 @@ fun PlacesScreen(
                     Hairline()
                 }
                 if (results.isEmpty() && query.trim().length >= 2) {
-                    item { Text("Keine Treffer", color = Color.White.copy(alpha = .6f), modifier = Modifier.padding(vertical = 14.dp)) }
+                    item { Text(tr(R.string.no_results), color = Color.White.copy(alpha = .6f), modifier = Modifier.padding(vertical = 14.dp)) }
                 }
             }
         } else {
@@ -110,7 +111,7 @@ fun PlacesScreen(
                 }
                 item(key = "news") {
                     Text(
-                        "Was ist neu",
+                        tr(R.string.whats_new),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color(0xFF0A84FF),
@@ -135,7 +136,7 @@ private fun PlaceRow(place: Place, w: Weather?, onClick: () -> Unit, onDelete: (
             Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).background(Color(0xFFFF453A)).padding(end = 22.dp),
             contentAlignment = Alignment.CenterEnd,
         ) {
-            if (!place.isCurrent) Text("Löschen", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            if (!place.isCurrent) Text(tr(R.string.delete), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
         Row(
             Modifier
@@ -167,7 +168,7 @@ private fun PlaceRow(place: Place, w: Weather?, onClick: () -> Unit, onDelete: (
             Column(Modifier.weight(1f).fillMaxHeight()) {
                 Text(place.name, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
-                    if (place.isCurrent) "Mein Standort" else w?.let { clock(it.current.time, it.zone) } ?: "",
+                    if (place.isCurrent) tr(R.string.my_location) else w?.let { clock(it.current.time, it.zone) } ?: "",
                     fontSize = 13.sp, fontWeight = FontWeight.Medium,
                 )
                 Spacer(Modifier.weight(1f))
@@ -177,7 +178,7 @@ private fun PlaceRow(place: Place, w: Weather?, onClick: () -> Unit, onDelete: (
                 Text(w?.current?.temp?.deg() ?: "–", fontSize = 40.sp, fontWeight = FontWeight.Light)
                 Spacer(Modifier.weight(1f))
                 val today = w?.takeIf { it.days.isNotEmpty() }?.today
-                if (today != null) Text("H:${today.max.deg()}  T:${today.min.deg()}", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                if (today != null) Text(tr(R.string.hi_lo, today.max.deg(), today.min.deg()), fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -204,9 +205,9 @@ fun PlacePreview(place: Place, w: Weather?, onCancel: () -> Unit, onAdd: () -> U
             demoName = null, onCycleDemo = {}, onDetail = {}, onMap = {}, bottomPadding = 20.dp,
         )
         Row(Modifier.fillMaxWidth().padding(top = top + 6.dp, start = 16.dp, end = 16.dp)) {
-            Text("Abbrechen", fontSize = 16.sp, modifier = Modifier.clickable(onClick = onCancel))
+            Text(tr(R.string.cancel), fontSize = 16.sp, modifier = Modifier.clickable(onClick = onCancel))
             Spacer(Modifier.weight(1f))
-            Text("Hinzufügen", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable(onClick = onAdd))
+            Text(tr(R.string.add), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable(onClick = onAdd))
         }
     }
 }

@@ -6,6 +6,10 @@
             android:exported="true"
             android:theme="@style/Theme.Wetter" />
         <!-- Nur fuer die automatische Pruefung in tools/ci/verify.sh -->
+        <activity
+            android:name=".DebugShotActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Wetter" />
         <receiver
             android:name=".DebugRenderReceiver"
             android:exported="true">

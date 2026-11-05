@@ -1,5 +1,11 @@
 # Update-Verlauf
 
+## 1.8 – 5. November 2026
+- App auf Deutsch, Englisch, Französisch, Spanisch, Portugiesisch (Portugal) und Polnisch
+- Die App folgt der Sprache des Handys; in den Android-Einstellungen lässt sich die Sprache je App wählen
+- Ortssuche, Wochentage, Karte und Widgets folgen ebenfalls der Sprache
+- Der Update-Verlauf erscheint auf Deutsch und Englisch
+
 ## 1.7 – 5. November 2026
 - App-Version mit Update-Knopf in der Ortsliste
 - Die App sucht selbst nach Updates und meldet neue Versionen

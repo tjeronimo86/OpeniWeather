@@ -1,5 +1,7 @@
 package de.tonyapps.wetter.data
 
+import android.content.Context
+import de.tonyapps.wetter.R
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -10,41 +12,51 @@ import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
-private val HM = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN)
-private val H = DateTimeFormatter.ofPattern("HH", Locale.GERMAN)
+private val HM = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)
+private val H = DateTimeFormatter.ofPattern("HH", Locale.ROOT)
+
+/** Texte fuer Stellen ohne Compose-Kontext, etwa Widgets; folgt der Sprache des Geraets. */
+object AppContext {
+    lateinit var app: Context
+}
+
+fun tr(id: Int, vararg args: Any): String = AppContext.app.getString(id, *args)
+fun trPlural(id: Int, count: Int): String = AppContext.app.resources.getQuantityString(id, count, count)
 
 fun clock(epoch: Long, zone: ZoneId): String = HM.format(Instant.ofEpochSecond(epoch).atZone(zone))
-fun hourLabel(epoch: Long, zone: ZoneId): String = H.format(Instant.ofEpochSecond(epoch).atZone(zone)) + " Uhr"
+fun hourLabel(epoch: Long, zone: ZoneId): String = tr(R.string.hour_label, H.format(Instant.ofEpochSecond(epoch).atZone(zone)))
 
-fun weekdayShort(d: Day): String = d.date.dayOfWeek.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.GERMAN).take(2)
-fun weekdayLong(d: Day): String = d.date.dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.GERMAN)
+fun weekdayShort(d: Day): String = d.date.dayOfWeek.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
+    .trimEnd('.').take(3).replaceFirstChar { it.titlecase(Locale.getDefault()) }
+fun weekdayLong(d: Day): String = d.date.dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault())
+    .replaceFirstChar { it.titlecase(Locale.getDefault()) }
 
 /** WMO-Wettercodes, so wie Open-Meteo sie liefert. */
 fun conditionText(code: Int, isDay: Boolean, cloud: Double = Double.NaN): String = when (code) {
-    0 -> if (isDay) "Sonnig" else "Klar"
-    1 -> if (isDay) "Meist sonnig" else "Meist klar"
-    2 -> "Teils bewölkt"
-    3 -> if (!cloud.isNaN() && cloud < 92) "Meist bewölkt" else "Bedeckt"
-    45, 48 -> "Nebel"
-    51 -> "Leichter Nieselregen"
-    53 -> "Nieselregen"
-    55 -> "Starker Nieselregen"
-    56, 57 -> "Gefrierender Nieselregen"
-    61 -> "Leichter Regen"
-    63 -> "Regen"
-    65 -> "Starker Regen"
-    66, 67 -> "Gefrierender Regen"
-    71 -> "Leichter Schneefall"
-    73 -> "Schneefall"
-    75 -> "Starker Schneefall"
-    77 -> "Schneegriesel"
-    80 -> "Leichte Schauer"
-    81 -> "Regenschauer"
-    82 -> "Heftige Schauer"
-    85 -> "Schneeschauer"
-    86 -> "Starke Schneeschauer"
-    95 -> "Gewitter"
-    96, 99 -> "Gewitter mit Hagel"
+    0 -> tr(if (isDay) R.string.c_sunny else R.string.c_clear)
+    1 -> tr(if (isDay) R.string.c_mostly_sunny else R.string.c_mostly_clear)
+    2 -> tr(R.string.c_partly)
+    3 -> tr(if (!cloud.isNaN() && cloud < 92) R.string.c_mostly_cloudy else R.string.c_overcast)
+    45, 48 -> tr(R.string.c_fog)
+    51 -> tr(R.string.c_drizzle_light)
+    53 -> tr(R.string.c_drizzle)
+    55 -> tr(R.string.c_drizzle_heavy)
+    56, 57 -> tr(R.string.c_drizzle_freezing)
+    61 -> tr(R.string.c_rain_light)
+    63 -> tr(R.string.c_rain)
+    65 -> tr(R.string.c_rain_heavy)
+    66, 67 -> tr(R.string.c_rain_freezing)
+    71 -> tr(R.string.c_snow_light)
+    73 -> tr(R.string.c_snow)
+    75 -> tr(R.string.c_snow_heavy)
+    77 -> tr(R.string.c_snow_grains)
+    80 -> tr(R.string.c_showers_light)
+    81 -> tr(R.string.c_showers)
+    82 -> tr(R.string.c_showers_heavy)
+    85 -> tr(R.string.c_snow_showers)
+    86 -> tr(R.string.c_snow_showers_heavy)
+    95 -> tr(R.string.c_thunder)
+    96, 99 -> tr(R.string.c_thunder_hail)
     else -> "–"
 }
 
@@ -75,46 +87,46 @@ fun summary(w: Weather): String {
     val next = w.hoursFromNow.take(13)
     if (next.isEmpty()) return conditionText(w.current.code, w.current.isDay)
     val gust = next.take(12).map { it.gust }.filter { !it.isNaN() }.maxOrNull()?.roundToInt()
-    val gustText = if (gust != null && gust >= 12) " Windböen mit bis zu $gust km/h." else ""
+    val gustText = if (gust != null && gust >= 12) " " + tr(R.string.sum_gusts, gust) else ""
     val nowKind = kindOf(w.current.code)
 
     if (nowKind != Kind.THUNDER) {
         next.firstOrNull { kindOf(it.code) == Kind.THUNDER }?.let {
-            return "Gewitter erwartet gegen ${clock(it.time, w.zone)}.$gustText"
+            return tr(R.string.sum_thunder_at, clock(it.time, w.zone)) + gustText
         }
     }
-    if (nowKind == Kind.THUNDER) return "Gewitter in der Umgebung.$gustText"
+    if (nowKind == Kind.THUNDER) return tr(R.string.sum_thunder_now) + gustText
     if (isWet(nowKind) || nowKind == Kind.SNOW) {
-        val word = if (nowKind == Kind.SNOW) "Schneefall" else "Regen"
+        val snow = nowKind == Kind.SNOW
         val dry = next.firstOrNull { val k = kindOf(it.code); !isWet(k) && k != Kind.SNOW }
         return if (dry != null) {
-            "$word endet voraussichtlich gegen ${clock(dry.time, w.zone)}.$gustText"
+            tr(if (snow) R.string.sum_snow_ends else R.string.sum_rain_ends, clock(dry.time, w.zone)) + gustText
         } else {
-            "$word hält weiter an.$gustText"
+            tr(if (snow) R.string.sum_snow_goes_on else R.string.sum_rain_goes_on) + gustText
         }
     }
     next.firstOrNull { val k = kindOf(it.code); isWet(k) || k == Kind.SNOW }?.let {
-        val word = if (kindOf(it.code) == Kind.SNOW) "Schneefall" else "Regen"
-        return "$word erwartet gegen ${clock(it.time, w.zone)}.$gustText"
+        val snow = kindOf(it.code) == Kind.SNOW
+        return tr(if (snow) R.string.sum_snow_at else R.string.sum_rain_at, clock(it.time, w.zone)) + gustText
     }
     val cloud = next.take(10).map { it.cloud }.filter { !it.isNaN() }.average()
     val base = when {
-        nowKind == Kind.FOG -> "Nebel in den nächsten Stunden."
-        cloud > 70 -> "Wolken für den Rest des Tages."
-        cloud < 25 && w.current.isDay -> "Sonne den ganzen Tag."
-        cloud < 25 -> "Klar für den Rest der Nacht."
-        else -> "Wechselnd bewölkt in den nächsten Stunden."
+        nowKind == Kind.FOG -> tr(R.string.sum_fog)
+        cloud > 70 -> tr(R.string.sum_clouds)
+        cloud < 25 && w.current.isDay -> tr(R.string.sum_sun)
+        cloud < 25 -> tr(R.string.sum_clear_night)
+        else -> tr(R.string.sum_mixed)
     }
     return base + gustText
 }
 
 fun uvLabel(uv: Double): String = when {
     uv.isNaN() -> "–"
-    uv < 3 -> "Niedrig"
-    uv < 6 -> "Mittel"
-    uv < 8 -> "Hoch"
-    uv < 11 -> "Sehr hoch"
-    else -> "Extrem"
+    uv < 3 -> tr(R.string.uv_low)
+    uv < 6 -> tr(R.string.uv_moderate)
+    uv < 8 -> tr(R.string.uv_high)
+    uv < 11 -> tr(R.string.uv_very_high)
+    else -> tr(R.string.uv_extreme)
 }
 
 fun uvAdvice(w: Weather): String {
@@ -122,40 +134,26 @@ fun uvAdvice(w: Weather): String {
     val high = w.hoursOf(day.date).filter { it.uv >= 3 }
     val until = high.lastOrNull()?.takeIf { it.time + 3600 > w.current.time }
     return if (until != null) {
-        "Sonnenschutz verwenden bis ${clock(until.time + 3600, w.zone)}."
+        tr(R.string.uv_protect_until, clock(until.time + 3600, w.zone))
     } else {
-        "Für den Rest des Tages niedrig."
+        tr(R.string.uv_low_rest)
     }
 }
 
 fun aqiLabel(aqi: Double): String = when {
     aqi.isNaN() -> "–"
-    aqi <= 20 -> "Sehr gut"
-    aqi <= 40 -> "Gut"
-    aqi <= 60 -> "Mäßig"
-    aqi <= 80 -> "Schlecht"
-    aqi <= 100 -> "Sehr schlecht"
-    else -> "Extrem schlecht"
+    aqi <= 20 -> tr(R.string.aqi_very_good)
+    aqi <= 40 -> tr(R.string.aqi_good)
+    aqi <= 60 -> tr(R.string.aqi_moderate)
+    aqi <= 80 -> tr(R.string.aqi_poor)
+    aqi <= 100 -> tr(R.string.aqi_very_poor)
+    else -> tr(R.string.aqi_extreme)
 }
 
 fun windName(deg: Double): String {
     if (deg.isNaN()) return "–"
-    val names = listOf("N", "NO", "O", "SO", "S", "SW", "W", "NW")
-    return names[((deg / 45.0).roundToInt() + 8) % 8]
-}
-
-fun beaufort(kmh: Double): String = when {
-    kmh < 2 -> "Windstille"
-    kmh < 12 -> "Leiser Zug"
-    kmh < 20 -> "Leichte Brise"
-    kmh < 29 -> "Schwache Brise"
-    kmh < 39 -> "Mäßige Brise"
-    kmh < 50 -> "Frische Brise"
-    kmh < 62 -> "Starker Wind"
-    kmh < 75 -> "Steifer Wind"
-    kmh < 89 -> "Stürmischer Wind"
-    kmh < 103 -> "Sturm"
-    else -> "Orkanartig"
+    val names = listOf(R.string.dir_n, R.string.dir_ne, R.string.dir_e, R.string.dir_se, R.string.dir_s, R.string.dir_sw, R.string.dir_w, R.string.dir_nw)
+    return tr(names[((deg / 45.0).roundToInt() + 8) % 8])
 }
 
 data class MoonInfo(val phase: Double, val illumination: Double, val name: String, val daysToFull: Int)
@@ -168,14 +166,14 @@ fun moonInfo(epoch: Long): MoonInfo {
     val phase = cycles - floor(cycles)
     val illumination = (1 - cos(2 * PI * phase)) / 2
     val name = when {
-        phase < 0.03 || phase >= 0.97 -> "Neumond"
-        phase < 0.22 -> "Zunehmende Sichel"
-        phase < 0.28 -> "Erstes Viertel"
-        phase < 0.47 -> "Zunehmender Mond"
-        phase < 0.53 -> "Vollmond"
-        phase < 0.72 -> "Abnehmender Mond"
-        phase < 0.78 -> "Letztes Viertel"
-        else -> "Abnehmende Sichel"
+        phase < 0.03 || phase >= 0.97 -> tr(R.string.m_new)
+        phase < 0.22 -> tr(R.string.m_waxing_crescent)
+        phase < 0.28 -> tr(R.string.m_first_quarter)
+        phase < 0.47 -> tr(R.string.m_waxing_gibbous)
+        phase < 0.53 -> tr(R.string.m_full)
+        phase < 0.72 -> tr(R.string.m_waning_gibbous)
+        phase < 0.78 -> tr(R.string.m_last_quarter)
+        else -> tr(R.string.m_waning_crescent)
     }
     val toFull = ((0.5 - phase + 1) % 1) * synodic
     return MoonInfo(phase, illumination, name, toFull.roundToInt())

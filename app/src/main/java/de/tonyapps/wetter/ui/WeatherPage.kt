@@ -1,5 +1,6 @@
 package de.tonyapps.wetter.ui
 
+import de.tonyapps.wetter.R
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -48,9 +49,10 @@ fun WeatherPage(
     onDetail: (DetailRequest) -> Unit,
     onMap: () -> Unit,
     bottomPadding: Dp,
+    startItem: Int = 0,
 ) {
     val insets = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val list = rememberLazyListState()
+    val list = rememberLazyListState(initialFirstVisibleItemIndex = startItem)
     val density = LocalDensity.current
     val sticky = remember(list, insets) { StickyContext(list, with(density) { (insets + PinnedBelowInset).toPx() }) }
     val scroll: () -> Float = {
@@ -67,7 +69,7 @@ fun WeatherPage(
                     LazyColumn(state = list, modifier = Modifier.fillMaxSize()) {
                         item {
                             Text(
-                                errorText ?: "Wetter wird geladen …",
+                                errorText ?: tr(R.string.loading_weather),
                                 fontSize = 15.sp, textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth().padding(top = insets + HeaderHeight, start = 30.dp, end = 30.dp),
                             )
@@ -132,7 +134,7 @@ private fun PageList(
         w.air?.let { air -> item(key = "air") { AirCard(air, "air", sticky) } }
         item(key = "credits") {
             Text(
-                "Daten: Open-Meteo (u. a. DWD, ECMWF) · Warnungen: DWD über Bright Sky · Radar: RainViewer",
+                tr(R.string.data_credits),
                 fontSize = 11.sp, lineHeight = 15.sp, textAlign = TextAlign.Center,
                 color = Color.White.copy(alpha = .6f),
                 modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
@@ -181,7 +183,7 @@ private fun Header(
         )
         if (place.isCurrent) {
             Text(
-                "Mein Standort",
+                tr(R.string.my_location),
                 fontSize = 12.sp, fontWeight = FontWeight.Medium,
                 modifier = Modifier.graphicsLayer {
                     alpha = (1f - scroll() / (range * .3f)).coerceIn(0f, 1f)
@@ -221,12 +223,12 @@ private fun Header(
                     Text(condition, fontSize = 19.sp, fontWeight = FontWeight.Medium)
                     if (today != null) {
                         Spacer(Modifier.height(3.dp))
-                        Text("H:${today.max.deg()}  T:${today.min.deg()}", fontSize = 19.sp, fontWeight = FontWeight.Medium)
+                        Text(tr(R.string.hi_lo, today.max.deg(), today.min.deg()), fontSize = 19.sp, fontWeight = FontWeight.Medium)
                     }
                 }
                 if (demoName != null) {
                     Spacer(Modifier.height(6.dp))
-                    Text("Vorschau: $demoName", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = .85f))
+                    Text(tr(R.string.preview_scene, demoName), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = .85f))
                 }
             }
         }

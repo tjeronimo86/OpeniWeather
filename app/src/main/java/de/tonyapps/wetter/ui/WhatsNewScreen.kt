@@ -17,7 +17,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import de.tonyapps.wetter.R
 import de.tonyapps.wetter.data.Changelog
+import de.tonyapps.wetter.data.tr
 
 /** Der Update-Verlauf. Erscheint nach jedem Update einmal und liegt in der Ortsliste. */
 @Composable
@@ -36,8 +38,8 @@ fun WhatsNewScreen(onClose: () -> Unit) {
             .padding(top = top + 8.dp, start = 16.dp, end = 16.dp),
     ) {
         Row {
-            Text("Was ist neu", fontSize = 32.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-            Text("Fertig", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0A84FF), modifier = Modifier.clickable(onClick = onClose))
+            Text(tr(R.string.whats_new), fontSize = 32.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            Text(tr(R.string.done), fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0A84FF), modifier = Modifier.clickable(onClick = onClose))
         }
         Spacer(Modifier.height(12.dp))
         LazyColumn(

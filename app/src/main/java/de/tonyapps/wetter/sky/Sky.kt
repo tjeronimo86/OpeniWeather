@@ -1,5 +1,6 @@
 package de.tonyapps.wetter.sky
 
+import de.tonyapps.wetter.R
 import android.content.Context
 import android.graphics.RuntimeShader
 import androidx.compose.animation.core.Animatable
@@ -91,17 +92,17 @@ fun lerpPages(a: SkyParams, b: SkyParams, t: Float): SkyParams {
 }
 
 /** Die Szenen des Vorschau-Modus (lange auf den Ortsnamen druecken). */
-val DEMO_SCENES: List<Pair<String, SkyParams>> = listOf(
-    "Klar" to SkyParams(sunX = 0.72f, sunY = 0.13f),
-    "Teils bewölkt" to SkyParams(cloud = 0.52f, grey = 0.05f, sunX = 0.72f, sunY = 0.16f),
-    "Bedeckt" to SkyParams(cloud = 0.95f, grey = 0.75f, sunX = 0.5f, sunY = 0.1f),
-    "Regen" to SkyParams(cloud = 1f, grey = 0.9f, rain = 0.65f, sunX = 0.5f, sunY = 0.1f),
-    "Gewitter" to SkyParams(cloud = 1f, grey = 1f, rain = 0.95f, storm = 1f, day = 0.45f, sunX = 0.5f, sunY = 0.1f),
-    "Schnee" to SkyParams(cloud = 1f, grey = 0.6f, snow = 0.75f, sunX = 0.5f, sunY = 0.1f),
-    "Nebel" to SkyParams(cloud = 0.7f, grey = 0.6f, fog = 0.85f, sunX = 0.5f, sunY = 0.2f),
-    "Klare Nacht" to SkyParams(cloud = 0.08f, grey = 0.1f, day = 0f, moonUp = 1f, sunX = 0.7f, sunY = 0.13f, moon = 0.36f),
-    "Bewölkte Nacht" to SkyParams(cloud = 0.62f, grey = 0.4f, day = 0f, moonUp = 1f, sunX = 0.28f, sunY = 0.14f),
-    "Sonnenuntergang" to SkyParams(cloud = 0.42f, grey = 0.05f, day = 0.72f, dusk = 0.9f, sunX = 0.3f, sunY = 0.62f),
+val DEMO_SCENES: List<Pair<Int, SkyParams>> = listOf(
+    R.string.c_clear to SkyParams(sunX = 0.72f, sunY = 0.13f),
+    R.string.c_partly to SkyParams(cloud = 0.52f, grey = 0.05f, sunX = 0.72f, sunY = 0.16f),
+    R.string.c_overcast to SkyParams(cloud = 0.95f, grey = 0.75f, sunX = 0.5f, sunY = 0.1f),
+    R.string.c_rain to SkyParams(cloud = 1f, grey = 0.9f, rain = 0.65f, sunX = 0.5f, sunY = 0.1f),
+    R.string.c_thunder to SkyParams(cloud = 1f, grey = 1f, rain = 0.95f, storm = 1f, day = 0.45f, sunX = 0.5f, sunY = 0.1f),
+    R.string.s_snow to SkyParams(cloud = 1f, grey = 0.6f, snow = 0.75f, sunX = 0.5f, sunY = 0.1f),
+    R.string.c_fog to SkyParams(cloud = 0.7f, grey = 0.6f, fog = 0.85f, sunX = 0.5f, sunY = 0.2f),
+    R.string.s_clear_night to SkyParams(cloud = 0.08f, grey = 0.1f, day = 0f, moonUp = 1f, sunX = 0.7f, sunY = 0.13f, moon = 0.36f),
+    R.string.s_cloudy_night to SkyParams(cloud = 0.62f, grey = 0.4f, day = 0f, moonUp = 1f, sunX = 0.28f, sunY = 0.14f),
+    R.string.s_sunset to SkyParams(cloud = 0.42f, grey = 0.05f, day = 0.72f, dusk = 0.9f, sunX = 0.3f, sunY = 0.62f),
 )
 
 /** Uebersetzt die Wetterdaten in Himmel-Parameter. */
@@ -187,7 +188,7 @@ private fun loadShader(context: Context): RuntimeShader? = runCatching {
  * Haelt ein Geraet das nicht, senkt die Bildraten-Sicherung die Aufloesung stufenweise.
  */
 @Composable
-fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier) {
+fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier, fixedScale: Float? = null) {
     val context = LocalContext.current
     val shader = remember { loadShader(context) }
     val currentParams by rememberUpdatedState(params)
@@ -199,7 +200,7 @@ fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier) {
     val brush = remember { ShaderBrush(shader) }
     var time by remember { mutableFloatStateOf(0f) }
     // Der Software-Renderer des Emulators schafft die hohe Stufe nicht einmal fuers erste Bild
-    var scale by remember { mutableFloatStateOf(if (android.os.Build.HARDWARE == "ranchu") 5f else 1.5f) }
+    var scale by remember { mutableFloatStateOf(fixedScale ?: if (android.os.Build.HARDWARE == "ranchu") 5f else 1.5f) }
     LaunchedEffect(Unit) {
         val start = withFrameNanos { it }
         var windowStart = start
@@ -211,7 +212,7 @@ fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier) {
                 val window = now - windowStart
                 if (window > 1_200_000_000L) {
                     // Unter rund 40 Bildern pro Sekunde eine Stufe groeber rendern
-                    if (window / frames > 25_000_000L && scale < 3f) scale += .5f
+                    if (fixedScale == null && window / frames > 25_000_000L && scale < 3f) scale += .5f
                     windowStart = now
                     frames = 0
                 }

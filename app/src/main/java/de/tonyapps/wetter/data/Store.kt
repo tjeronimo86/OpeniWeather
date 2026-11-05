@@ -1,5 +1,6 @@
 package de.tonyapps.wetter.data
 
+import de.tonyapps.wetter.R
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
@@ -53,7 +54,7 @@ class Store(context: Context) {
         val json = prefs.getString("current-place", null) ?: return null
         return runCatching {
             val o = JSONObject(json)
-            Place(CURRENT_ID, o.getString("name"), "Mein Standort", o.optString("cc"), o.getDouble("lat"), o.getDouble("lon"), true)
+            Place(CURRENT_ID, o.getString("name"), tr(R.string.my_location), o.optString("cc"), o.getDouble("lat"), o.getDouble("lon"), true)
         }.getOrNull()
     }
 

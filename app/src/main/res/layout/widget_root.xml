@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:clipToOutline="true"
-    android:contentDescription="Wetter">
+    android:contentDescription="@string/app_name">
 
     <!-- ViewFlipper ist der einzige Weg zu Dauer-Animation in RemoteViews.
          Beide pausieren von selbst, wenn der Startbildschirm nicht sichtbar ist.

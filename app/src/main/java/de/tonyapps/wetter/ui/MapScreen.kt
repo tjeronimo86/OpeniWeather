@@ -25,6 +25,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.viewinterop.AndroidView
 import de.tonyapps.wetter.data.Place
+import de.tonyapps.wetter.R
+import de.tonyapps.wetter.data.tr
+import org.json.JSONObject
 import java.util.Locale
 
 /**
@@ -70,9 +73,17 @@ fun MapScreen(place: Place, onClose: () -> Unit) {
                         }
 
                         override fun onPageFinished(view: WebView, url: String) {
+                            val labels = JSONObject()
+                                .put("rain", tr(R.string.t_precip))
+                                .put("temp", tr(R.string.d_temp))
+                                .put("wind", tr(R.string.t_wind))
+                                .put("radarOff", tr(R.string.map_radar_off))
+                                .put("loading", tr(R.string.map_loading))
+                                .put("modelOff", tr(R.string.map_model_off))
+                                .put("locale", Locale.getDefault().toLanguageTag())
                             val js = String.format(
-                                Locale.US, "start(%.4f,%.4f,%d,%d)", place.lat, place.lon,
-                                latestTop.value.toInt(), latestBottom.value.toInt(),
+                                Locale.US, "start(%.4f,%.4f,%d,%d,%s)", place.lat, place.lon,
+                                latestTop.value.toInt(), latestBottom.value.toInt(), labels.toString(),
                             )
                             view.evaluateJavascript(js, null)
                         }
@@ -83,7 +94,7 @@ fun MapScreen(place: Place, onClose: () -> Unit) {
             onRelease = { it.destroy() },
         )
         Text(
-            "Fertig",
+            tr(R.string.done),
             fontSize = 15.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier

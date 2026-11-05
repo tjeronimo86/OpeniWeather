@@ -54,20 +54,13 @@ class DebugRenderReceiver : BroadcastReceiver() {
                 val weather = store.cached(place.id)?.let { Parser.parse(it) }
                 Log.i("WetterDebug", "place=${place.name} weather=${weather != null} shader=${SkyBitmap.render(context, 64, 64, DEMO_SCENES[1].second) != null}")
                 val renderer = WidgetRenderer(context)
-                listOf(WidgetStyle.MEDIUM).forEach { style ->
-                    save(renderer.render(style, place, weather, style.defaultW, style.defaultH), File(dir, "${style.name}.png"))
-                }
-                emptyList<Int>().forEach { i ->
-                    val sky = DEMO_SCENES[i].second
-                    save(renderer.render(WidgetStyle.SMALL, place, weather, 158, 158, sky), File(dir, "scene$i.png"))
-                }
-                listOf(3, 4, 5, 1).forEach { i ->
-                    val started = System.currentTimeMillis()
-                    val layers = renderer.layers(weather, 338, 158, DEMO_SCENES[i].second)
-                    val all = (layers.clouds.toSet() + layers.precip?.frames.orEmpty().toSet())
-                    Log.i("WetterDebug", "layers scene$i clouds=${layers.clouds.size} ${layers.clouds.firstOrNull()?.width}x${layers.clouds.firstOrNull()?.height} precip=${layers.precip?.frames?.size} ms=${System.currentTimeMillis() - started} bytes=${all.sumOf { it.allocationByteCount }}")
-                    layers.clouds.firstOrNull()?.let { save(it, File(dir, "cloud$i.png")) }
-                    layers.precip?.frames?.forEachIndexed { n, frame -> if (n % 7 == 0 || n in 13..16) save(frame, File(dir, "precip${i}_$n.png")) }
+                val language = java.util.Locale.getDefault().language
+                listOf(
+                    WidgetStyle.SMALL to 1, WidgetStyle.MEDIUM to 3, WidgetStyle.LARGE to 7,
+                    WidgetStyle.DAILY to 1, WidgetStyle.SUN to 9,
+                ).forEach { (style, scene) ->
+                    val bitmap = renderer.render(style, place, weather, style.defaultW, style.defaultH, DEMO_SCENES[scene].second)
+                    save(bitmap, File(dir, "${language}_${style.name}.png"))
                 }
                 Log.i("WetterDebug", "render done")
             } catch (t: Throwable) {

@@ -1,6 +1,8 @@
 package de.tonyapps.wetter.data
 
 import android.content.Context
+import de.tonyapps.wetter.R
+import java.util.Locale
 
 data class Release(val title: String, val items: List<String>)
 
@@ -8,7 +10,7 @@ data class Release(val title: String, val items: List<String>)
 object Changelog {
     fun read(context: Context): List<Release> {
         val text = runCatching {
-            context.assets.open("CHANGELOG.md").bufferedReader().use { it.readText() }
+            context.assets.open(if (Locale.getDefault().language == "de") "CHANGELOG.md" else "CHANGELOG.en.md").bufferedReader().use { it.readText() }
         }.getOrDefault("")
         val releases = mutableListOf<Release>()
         var title = ""
@@ -33,7 +35,7 @@ object Changelog {
     /** Anzeige wie auf GitHub, z. B. "Version 1.5 (Build 11)". */
     fun versionLabel(context: Context): String {
         val info = context.packageManager.getPackageInfo(context.packageName, 0)
-        return "Version ${info.versionName} (Build ${info.longVersionCode})"
+        return tr(R.string.u_version, info.versionName.orEmpty(), info.longVersionCode.toInt())
     }
 
     /** True beim ersten Start nach einem Update; merkt sich die Version sofort. */

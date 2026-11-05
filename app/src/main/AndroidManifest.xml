@@ -9,7 +9,9 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="Wetter"
+        android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
+        android:name=".WeatherApplication"
         android:supportsRtl="true"
         android:theme="@style/Theme.Wetter">
         <activity
@@ -28,7 +30,7 @@
         <receiver
             android:name=".widget.SmallWidget"
             android:exported="true"
-            android:label="Vorhersage klein">
+            android:label="@string/widget_small">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -40,7 +42,7 @@
         <receiver
             android:name=".widget.MediumWidget"
             android:exported="true"
-            android:label="Vorhersage mittel">
+            android:label="@string/widget_medium">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -52,7 +54,7 @@
         <receiver
             android:name=".widget.LargeWidget"
             android:exported="true"
-            android:label="Vorhersage groß">
+            android:label="@string/widget_large">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -64,7 +66,7 @@
         <receiver
             android:name=".widget.DailyWidget"
             android:exported="true"
-            android:label="Tagesvorhersage">
+            android:label="@string/widget_daily">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -76,7 +78,7 @@
         <receiver
             android:name=".widget.SunWidget"
             android:exported="true"
-            android:label="Sonne">
+            android:label="@string/widget_sun">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

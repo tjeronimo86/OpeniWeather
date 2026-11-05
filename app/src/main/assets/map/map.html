@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -55,8 +55,11 @@ const $ = id => document.getElementById(id);
 let map, layer = 'rain', me;
 
 /* ---------- Start: wird von der App mit Ort und Randabstaenden aufgerufen ---------- */
-function start(lat, lon, top = 0, bottom = 0) {
+let text = {radarOff: 'Radar unavailable', loading: 'Loading …', modelOff: 'Model data unavailable', locale: undefined};
+function start(lat, lon, top = 0, bottom = 0, labels = {}) {
   if (map) { map.setView([lat, lon]); return; }
+  text = {...text, ...labels};
+  document.querySelectorAll('#layers button').forEach(b => { if (labels[b.dataset.l]) b.textContent = labels[b.dataset.l]; });
   $('layers').style.top = (top + 10) + 'px';
   $('status').style.top = (top + 12) + 'px';
   $('timeline').style.bottom = $('legend').style.bottom = (bottom + 22) + 'px';
@@ -109,14 +112,14 @@ async function loadRadar() {
     }));
     show(frames.length - 1);
     if (layer === 'rain') play();
-  } catch (e) { status('Radar gerade nicht erreichbar'); }
+  } catch (e) { status(text.radarOff); }
 }
 function show(i) {
   if (!frames.length) return;
   index = (i + frames.length) % frames.length;
   frames.forEach((f, k) => f.layer.setOpacity(k === index && layer === 'rain' ? .78 : 0));
   $('fill').style.width = (frames.length > 1 ? index / (frames.length - 1) * 100 : 100) + '%';
-  $('when').textContent = new Date(frames[index].time * 1000).toLocaleTimeString('de-DE', {hour: '2-digit', minute: '2-digit'});
+  $('when').textContent = new Date(frames[index].time * 1000).toLocaleTimeString(text.locale, {hour: '2-digit', minute: '2-digit'});
 }
 function play() { clearInterval(timer); timer = setInterval(() => show(index + 1), 650); $('play').textContent = '❚❚'; }
 function pause() { clearInterval(timer); timer = null; $('play').textContent = '▶'; }
@@ -160,7 +163,7 @@ async function loadGrid(attempt = 0) {
     lons.push((west + (east - west) * c / (COLS - 1)).toFixed(3));
   }
   const seq = ++gridSeq;
-  status('Lade Modelldaten …');
+  status(text.loading);
   try {
     const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m,wind_speed_10m,wind_direction_10m`, {signal: AbortSignal.timeout(12000)});
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -176,7 +179,7 @@ async function loadGrid(attempt = 0) {
     console.log('grid failed', e && e.message);
     if (seq !== gridSeq) return;
     if (attempt < 2) { setTimeout(() => loadGrid(attempt + 1), 2500); return; }
-    status('Modelldaten gerade nicht erreichbar');
+    status(text.modelOff);
   }
 }
 

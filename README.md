@@ -1,9 +1,13 @@
 # Wetter
 
+**Deutsch** · [English](README.en.md)
+
 Eine Android-Wetter-App mit animiertem Himmel. Privates Hobbyprojekt, nicht kommerziell.
 Kotlin und Jetpack Compose, ab Android 13.
 
 [Update-Verlauf](changelog/CHANGELOG.md) · [Downloads](../../releases/latest)
+
+<!-- SCREENSHOTS -->
 
 ## Funktionen
 
@@ -13,6 +17,7 @@ Kotlin und Jetpack Compose, ab Android 13.
 - Karte mit Regenradar, Temperatur und Wind
 - Mehrere Orte und Widgets für den Startbildschirm
 - Update-Suche und Installation direkt aus der App
+- Sprachen: Deutsch, Englisch, Französisch, Spanisch, Portugiesisch (Portugal), Polnisch
 
 ## Installation
 

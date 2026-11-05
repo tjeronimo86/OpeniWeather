@@ -1,5 +1,6 @@
 package de.tonyapps.wetter.data
 
+import de.tonyapps.wetter.R
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
@@ -64,7 +65,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
                     if (!load(p)) failed = true
                 }
             }
-            error = if (failed) "Keine Verbindung. Letzte Daten werden angezeigt." else null
+            error = if (failed) tr(R.string.no_connection) else null
             loading = false
             Widgets.updateAll(getApplication())
         }
@@ -107,7 +108,7 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val loc = currentLocation(ctx) ?: return@launch
             val (name, cc) = withContext(Dispatchers.IO) { reverse(ctx, loc) }
-            val place = Place(CURRENT_ID, name, "Mein Standort", cc, loc.latitude, loc.longitude, true)
+            val place = Place(CURRENT_ID, name, tr(R.string.my_location), cc, loc.latitude, loc.longitude, true)
             store.saveCurrent(place)
             val index = places.indexOfFirst { it.isCurrent }
             if (index >= 0) places[index] = place else places.add(0, place)
@@ -137,9 +138,9 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
     @Suppress("DEPRECATION")
     private fun reverse(ctx: Context, loc: Location): Pair<String, String> {
         val address = runCatching {
-            Geocoder(ctx, Locale.GERMANY).getFromLocation(loc.latitude, loc.longitude, 1)?.firstOrNull()
+            Geocoder(ctx, Locale.getDefault()).getFromLocation(loc.latitude, loc.longitude, 1)?.firstOrNull()
         }.getOrNull()
-        val name = address?.locality ?: address?.subAdminArea ?: "Mein Standort"
+        val name = address?.locality ?: address?.subAdminArea ?: tr(R.string.my_location)
         return name to (address?.countryCode ?: "DE")
     }
 

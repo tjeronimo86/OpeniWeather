@@ -1,5 +1,6 @@
 package de.tonyapps.wetter.ui
 
+import de.tonyapps.wetter.R
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
@@ -31,19 +32,21 @@ import de.tonyapps.wetter.data.*
 import kotlinx.coroutines.launch
 import kotlin.math.*
 
-enum class Metric(val title: String, val unit: String, val color: Color, val bars: Boolean = false) {
-    TEMP("Temperatur", "°", Color(0xFFFFB340)),
-    FEELS("Gefühlte Temperatur", "°", Color(0xFFFF9F68)),
-    RAIN("Niederschlag", " %", Color(0xFF58C4FF), bars = true),
-    AMOUNT("Regenmenge", " mm", Color(0xFF0A84FF), bars = true),
-    SNOW("Schnee", " cm", Color(0xFFBFE3FF), bars = true),
-    WIND("Wind", " km/h", Color(0xFF5EE0C8)),
-    GUST("Böen", " km/h", Color(0xFF7DE3A0)),
-    HUMIDITY("Luftfeuchtigkeit", " %", Color(0xFF7DA7FF)),
-    DEW("Taupunkt", "°", Color(0xFF9FD0FF)),
-    PRESSURE("Luftdruck", " hPa", Color(0xFFD0B3FF)),
-    UV("UV-Index", "", Color(0xFFFFD60A), bars = true),
-    VISIBILITY("Sichtweite", " km", Color(0xFFE0E6EE));
+enum class Metric(private val titleId: Int, val unit: String, val color: Color, val bars: Boolean = false) {
+    TEMP(R.string.d_temp, "°", Color(0xFFFFB340)),
+    FEELS(R.string.d_feels, "°", Color(0xFFFF9F68)),
+    RAIN(R.string.t_precip, " %", Color(0xFF58C4FF), bars = true),
+    AMOUNT(R.string.d_amount, " mm", Color(0xFF0A84FF), bars = true),
+    SNOW(R.string.s_snow, " cm", Color(0xFFBFE3FF), bars = true),
+    WIND(R.string.t_wind, " km/h", Color(0xFF5EE0C8)),
+    GUST(R.string.t_gusts, " km/h", Color(0xFF7DE3A0)),
+    HUMIDITY(R.string.d_humidity, " %", Color(0xFF7DA7FF)),
+    DEW(R.string.d_dew, "°", Color(0xFF9FD0FF)),
+    PRESSURE(R.string.t_pressure, " hPa", Color(0xFFD0B3FF)),
+    UV(R.string.t_uv, "", Color(0xFFFFD60A), bars = true),
+    VISIBILITY(R.string.t_visibility, " km", Color(0xFFE0E6EE));
+
+    val title: String get() = tr(titleId)
 
     fun of(h: Hour): Double = when (this) {
         TEMP -> h.temp
@@ -133,8 +136,8 @@ fun DetailSheet(w: Weather, request: DetailRequest, onClose: () -> Unit) {
             Spacer(Modifier.height(7.dp))
             Box(Modifier.size(38.dp, 5.dp).clip(RoundedCornerShape(3.dp)).background(Color(0xFF55555A)))
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Wetterlage", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                Text("Fertig", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0A84FF), modifier = Modifier.clickable { close() })
+                Text(tr(R.string.d_title), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text(tr(R.string.done), fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0A84FF), modifier = Modifier.clickable { close() })
             }
         }
 
@@ -145,7 +148,7 @@ fun DetailSheet(w: Weather, request: DetailRequest, onClose: () -> Unit) {
                     Modifier.width(44.dp).clickable { date = d.date },
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text(if (i == 0) "Heu" else weekdayShort(d), fontSize = 12.sp, color = Color.White.copy(alpha = .6f))
+                    Text(if (i == 0) tr(R.string.today_short) else weekdayShort(d), fontSize = 12.sp, color = Color.White.copy(alpha = .6f))
                     Spacer(Modifier.height(4.dp))
                     Box(
                         Modifier.size(34.dp).clip(RectangleShapeCircle).background(if (selected) Color(0xFF0A84FF) else Color.Transparent),
@@ -191,14 +194,14 @@ fun DetailSheet(w: Weather, request: DetailRequest, onClose: () -> Unit) {
 
 private fun fmt(v: Double, m: Metric): String = when {
     v.isNaN() -> "–"
-    m == Metric.AMOUNT || m == Metric.SNOW -> String.format(java.util.Locale.GERMAN, "%.1f%s", v, m.unit)
+    m == Metric.AMOUNT || m == Metric.SNOW -> String.format(java.util.Locale.getDefault(), "%.1f%s", v, m.unit)
     else -> "${v.roundToInt()}${m.unit}"
 }
 
 @Composable
 private fun Chart(w: Weather, hours: List<Hour>, metric: Metric, day: Day?) {
     if (hours.isEmpty()) {
-        Text("Keine Stundenwerte für diesen Tag.", color = Color.White.copy(alpha = .6f))
+        Text(tr(R.string.d_no_hours), color = Color.White.copy(alpha = .6f))
         return
     }
     val values = remember(hours, metric) { hours.map { metric.of(it) } }
@@ -222,7 +225,7 @@ private fun Chart(w: Weather, hours: List<Hour>, metric: Metric, day: Day?) {
     Text(
         when {
             shownIndex >= 0 -> "${clock(hours[shownIndex].time, w.zone)} · ${conditionText(hours[shownIndex].code, hours[shownIndex].isDay, hours[shownIndex].cloud)}"
-            day != null -> "${weekdayLong(day)}: Höchst- und Tiefstwert"
+            day != null -> tr(R.string.d_hi_lo_of, weekdayLong(day))
             else -> ""
         },
         fontSize = 14.sp, color = Color.White.copy(alpha = .7f),
@@ -274,7 +277,7 @@ private fun Chart(w: Weather, hours: List<Hour>, metric: Metric, day: Day?) {
                 val yy = y(v)
                 drawLine(Color.White.copy(alpha = .1f), Offset(0f, yy), Offset(plotW, yy), 1f)
                 drawContext.canvas.nativeCanvas.drawText(
-                    if (metric == Metric.AMOUNT || metric == Metric.SNOW) String.format(java.util.Locale.GERMAN, "%.1f", v) else v.roundToInt().toString(),
+                    if (metric == Metric.AMOUNT || metric == Metric.SNOW) String.format(java.util.Locale.getDefault(), "%.1f", v) else v.roundToInt().toString(),
                     plotW + 6.dp.toPx(), yy + 4.dp.toPx(), text,
                 )
             }
@@ -340,13 +343,13 @@ private fun Chart(w: Weather, hours: List<Hour>, metric: Metric, day: Day?) {
 @Composable
 private fun DayFacts(w: Weather, d: Day) {
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(ChipBg).padding(horizontal = 14.dp, vertical = 6.dp)) {
-        Fact("Wetter", conditionText(d.code, true))
-        Fact("Höchstwert / Tiefstwert", "${d.max.deg()} / ${d.min.deg()}")
-        Fact("Niederschlag", "${d.precip.int()} mm · ${d.pop.int()} %")
-        Fact("Wind maximal", "${d.windMax.int()} km/h ${windName(d.windDir)}")
-        Fact("Böen maximal", "${d.gustMax.int()} km/h")
-        Fact("UV-Index maximal", "${d.uvMax.int()} · ${uvLabel(d.uvMax)}")
-        Fact("Sonne", "${clock(d.sunrise, w.zone)} – ${clock(d.sunset, w.zone)}")
+        Fact(tr(R.string.f_weather), conditionText(d.code, true))
+        Fact(tr(R.string.f_hi_lo), "${d.max.deg()} / ${d.min.deg()}")
+        Fact(tr(R.string.t_precip), "${d.precip.int()} mm · ${d.pop.int()} %")
+        Fact(tr(R.string.f_wind_max), "${d.windMax.int()} km/h ${windName(d.windDir)}")
+        Fact(tr(R.string.f_gust_max), "${d.gustMax.int()} km/h")
+        Fact(tr(R.string.f_uv_max), "${d.uvMax.int()} · ${uvLabel(d.uvMax)}")
+        Fact(tr(R.string.f_sun), "${clock(d.sunrise, w.zone)} – ${clock(d.sunset, w.zone)}")
     }
 }
 

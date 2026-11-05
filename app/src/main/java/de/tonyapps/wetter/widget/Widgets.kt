@@ -18,6 +18,7 @@ import de.tonyapps.wetter.data.Place
 import de.tonyapps.wetter.data.Store
 import de.tonyapps.wetter.data.Weather
 import de.tonyapps.wetter.data.conditionText
+import de.tonyapps.wetter.data.tr
 import de.tonyapps.wetter.sky.SkyParams
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,7 +74,7 @@ object Widgets {
                 val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it > 0 } ?: style.defaultH
                 val views = animatedViews(context, renderer, style, place, weather, width, height)
                 val description = weather?.let {
-                    "${place.name}: ${it.current.temp.toInt()} Grad, ${conditionText(it.current.code, it.current.isDay, it.current.cloud)}"
+                    tr(R.string.w_desc, place.name, it.current.temp.toInt(), conditionText(it.current.code, it.current.isDay, it.current.cloud))
                 } ?: place.name
                 decorate(context, views, place, id, description)
                 try {

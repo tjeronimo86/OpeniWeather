@@ -83,7 +83,7 @@ object Api {
 
     suspend fun search(query: String): List<Place> = withContext(Dispatchers.IO) {
         val q = URLEncoder.encode(query, "UTF-8")
-        val json = JSONObject(get("https://geocoding-api.open-meteo.com/v1/search?name=$q&count=12&language=de&format=json"))
+        val json = JSONObject(get("https://geocoding-api.open-meteo.com/v1/search?name=$q&count=12&language=${Locale.getDefault().language}&format=json"))
         val results = json.optJSONArray("results") ?: return@withContext emptyList()
         List(results.length()) { i ->
             val r = results.getJSONObject(i)
@@ -197,6 +197,12 @@ object Parser {
         )
     }
 
+    /** Der DWD warnt auf Deutsch und Englisch; alle anderen Sprachen bekommen Englisch. */
+    private fun text(o: JSONObject, field: String): String {
+        val order = if (Locale.getDefault().language == "de") listOf("de", "en") else listOf("en", "de")
+        return order.map { o.optString("${field}_$it") }.firstOrNull { it.isNotBlank() && it != "null" }.orEmpty()
+    }
+
     private fun parseAlerts(json: String): List<Alert> {
         val list = JSONObject(json).optJSONArray("alerts") ?: return emptyList()
         val now = System.currentTimeMillis() / 1000
@@ -204,10 +210,10 @@ object Parser {
         return List(list.length()) { list.getJSONObject(it) }
             .map {
                 Alert(
-                    event = it.optString("event_de"),
-                    headline = it.optString("headline_de"),
-                    description = it.optString("description_de"),
-                    instruction = it.optString("instruction_de").takeUnless { s -> s == "null" }.orEmpty(),
+                    event = text(it, "event"),
+                    headline = text(it, "headline"),
+                    description = text(it, "description"),
+                    instruction = text(it, "instruction"),
                     severity = it.optString("severity"),
                     onset = epoch(it.optString("onset")),
                     expires = epoch(it.optString("expires")),

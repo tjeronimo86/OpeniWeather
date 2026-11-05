@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import de.tonyapps.wetter.data.Changelog
 import de.tonyapps.wetter.data.Place
+import de.tonyapps.wetter.data.tr
 import de.tonyapps.wetter.data.WeatherViewModel
 import de.tonyapps.wetter.sky.*
 import de.tonyapps.wetter.update.Updater
@@ -129,7 +130,7 @@ fun WetterApp(openPlace: String? = null, vm: WeatherViewModel = viewModel()) {
                     errorText = vm.error,
                     refreshing = vm.loading,
                     onRefresh = { vm.refreshAll(force = true) },
-                    demoName = if (demo >= 0) DEMO_SCENES[demo].first else null,
+                    demoName = if (demo >= 0) tr(DEMO_SCENES[demo].first) else null,
                     onCycleDemo = { vm.demoScene = if (demo + 1 >= DEMO_SCENES.size) -1 else demo + 1 },
                     onDetail = { detail = it },
                     onMap = { mapPlace = place },

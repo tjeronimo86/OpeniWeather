@@ -1,5 +1,6 @@
 package de.tonyapps.wetter.ui
 
+import de.tonyapps.wetter.R
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -63,12 +64,12 @@ fun AlertCard(alert: Alert, zone: java.time.ZoneId, key: Any, sticky: StickyCont
     var expanded by remember { mutableStateOf(false) }
     GlassCard(
         key, sticky, Modifier.fillMaxWidth(), onClick = { expanded = !expanded },
-        header = { CardTitle(Glyph.WARN, alert.event.ifBlank { "Wetterwarnung" }) },
+        header = { CardTitle(Glyph.WARN, alert.event.ifBlank { tr(R.string.alert_default) }) },
     ) {
         Column(Modifier.padding(start = 14.dp, end = 14.dp, bottom = 12.dp)) {
             Text(alert.headline, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             if (alert.expires > 0) {
-                Text("Bis ${clock(alert.expires, zone)} · Deutscher Wetterdienst", fontSize = 12.sp, color = Color.White.copy(alpha = .65f))
+                Text(tr(R.string.alert_until, clock(alert.expires, zone)), fontSize = 12.sp, color = Color.White.copy(alpha = .65f))
             }
             if (expanded) {
                 Spacer(Modifier.height(6.dp))
@@ -128,7 +129,7 @@ fun HourlyCard(w: Weather, key: Any, sticky: StickyContext, onOpen: () -> Unit) 
                     when (slot) {
                         is Slot.Forecast -> {
                             val h = slot.hour
-                            Text(if (slot.now) "Jetzt" else hourLabel(h.time, w.zone), fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                            Text(if (slot.now) tr(R.string.now) else hourLabel(h.time, w.zone), fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
                             Spacer(Modifier.height(7.dp))
                             IconWithPop(if (slot.now) w.current.code else h.code, if (slot.now) w.current.isDay else h.isDay, h.pop)
                             Spacer(Modifier.height(5.dp))
@@ -141,7 +142,7 @@ fun HourlyCard(w: Weather, key: Any, sticky: StickyContext, onOpen: () -> Unit) 
                                 GlyphIcon(Glyph.SUNSET, 26.dp, Color(0xFFFFD33D))
                             }
                             Spacer(Modifier.height(5.dp))
-                            Text(if (slot.rise) "Aufgang" else "Untergang", fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                            Text(tr(if (slot.rise) R.string.rise_short else R.string.set_short), fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1)
                         }
                     }
                 }
@@ -171,7 +172,7 @@ fun TenDayCard(w: Weather, key: Any, sticky: StickyContext, onDay: (Day) -> Unit
         key, sticky, Modifier.fillMaxWidth(),
         header = {
             Column {
-                CardTitle(Glyph.CALENDAR, "10-Tage-Vorhersage")
+                CardTitle(Glyph.CALENDAR, tr(R.string.t_ten_days))
                 Hairline(Modifier.padding(start = 14.dp))
             }
         },
@@ -182,7 +183,7 @@ fun TenDayCard(w: Weather, key: Any, sticky: StickyContext, onDay: (Day) -> Unit
                     Modifier.fillMaxWidth().clickable { onDay(d) }.heightIn(min = 52.dp).padding(vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(if (i == 0) "Heute" else weekdayShort(d), fontSize = 17.sp, fontWeight = FontWeight.Medium, modifier = Modifier.width(60.dp))
+                    Text(if (i == 0) tr(R.string.today) else weekdayShort(d), fontSize = 17.sp, fontWeight = FontWeight.Medium, modifier = Modifier.width(60.dp))
                     Box(Modifier.width(38.dp), contentAlignment = Alignment.Center) { IconWithPop(d.code, true, d.pop) }
                     Spacer(Modifier.width(10.dp))
                     Text(d.min.deg(), fontSize = 17.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = .58f), textAlign = TextAlign.End, modifier = Modifier.width(38.dp))
@@ -314,7 +315,7 @@ fun ScaleBar(fraction: Float, colors: List<Color>, modifier: Modifier = Modifier
 @Composable
 fun UvTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifier, onClick: () -> Unit) {
     val uv = w.hoursFromNow.firstOrNull()?.uv ?: Double.NaN
-    Tile(Glyph.SUN, "UV-Index", key, sticky, modifier, onClick = onClick) {
+    Tile(Glyph.SUN, tr(R.string.t_uv), key, sticky, modifier, onClick = onClick) {
         Column {
             BigValue(uv.int())
             Text(uvLabel(uv), fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
@@ -338,9 +339,9 @@ fun SunTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifier) {
         now < today.sunrise -> today.sunrise
         else -> tomorrow?.sunrise ?: today.sunrise
     }
-    val otherLabel = if (nextIsSet) "Sonnenaufgang: ${clock(today.sunrise, w.zone)}" else "Sonnenuntergang: ${clock(today.sunset, w.zone)}"
+    val otherLabel = if (nextIsSet) tr(R.string.sunrise_at, clock(today.sunrise, w.zone)) else tr(R.string.sunset_at, clock(today.sunset, w.zone))
     val move by rememberReveal(150, 1400)
-    Tile(if (nextIsSet) Glyph.SUNSET else Glyph.SUN, if (nextIsSet) "Sonnenuntergang" else "Sonnenaufgang", key, sticky, modifier) {
+    Tile(if (nextIsSet) Glyph.SUNSET else Glyph.SUN, tr(if (nextIsSet) R.string.t_sunset else R.string.t_sunrise), key, sticky, modifier) {
         BigValue(clock(nextTime, w.zone))
         Canvas(Modifier.fillMaxWidth().height(58.dp).align(Alignment.Center).offset(y = 16.dp)) {
             val width = size.width
@@ -377,14 +378,14 @@ fun SunTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifier) {
 @Composable
 fun WindCard(w: Weather, key: Any, sticky: StickyContext, onClick: () -> Unit) {
     val c = w.current
-    GlassCard(key, sticky, Modifier.fillMaxWidth(), onClick = onClick, header = { CardTitle(Glyph.WIND, "Wind") }) {
+    GlassCard(key, sticky, Modifier.fillMaxWidth(), onClick = onClick, header = { CardTitle(Glyph.WIND, tr(R.string.t_wind)) }) {
         Row(Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                WindRow("Wind", "${c.wind.int()} km/h")
+                WindRow(tr(R.string.t_wind), "${c.wind.int()} km/h")
                 Hairline()
-                WindRow("Böen", "${c.gust.int()} km/h")
+                WindRow(tr(R.string.t_gusts), "${c.gust.int()} km/h")
                 Hairline()
-                WindRow("Richtung", "${c.windDir.int()}° ${windName(c.windDir)}")
+                WindRow(tr(R.string.t_direction), "${c.windDir.int()}° ${windName(c.windDir)}")
             }
             Spacer(Modifier.width(16.dp))
             Compass(c.windDir, c.wind)
@@ -443,8 +444,8 @@ private fun Compass(direction: Double, speed: Double) {
             }
         }
         for ((label, alignment) in listOf(
-            "N" to Alignment.TopCenter, "O" to Alignment.CenterEnd,
-            "S" to Alignment.BottomCenter, "W" to Alignment.CenterStart,
+            tr(R.string.dir_n) to Alignment.TopCenter, tr(R.string.dir_e) to Alignment.CenterEnd,
+            tr(R.string.dir_s) to Alignment.BottomCenter, tr(R.string.dir_w) to Alignment.CenterStart,
         )) {
             Text(label, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = .7f), modifier = Modifier.align(alignment).padding(10.dp))
         }
@@ -462,12 +463,12 @@ fun PrecipTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifier, 
     val now = w.current.time
     val past = w.hours.filter { it.time in (now - 86400)..now }.sumOf { if (it.precip.isNaN()) 0.0 else it.precip }
     val next = w.hours.filter { it.time in now..(now + 86400) }.sumOf { if (it.precip.isNaN()) 0.0 else it.precip }
-    Tile(Glyph.DROP, "Niederschlag", key, sticky, modifier, onClick = onClick) {
+    Tile(Glyph.DROP, tr(R.string.t_precip), key, sticky, modifier, onClick = onClick) {
         Column {
             BigValue(past.int(), "mm")
-            Text("in den letzten 24 Std.", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, lineHeight = 19.sp)
+            Text(tr(R.string.precip_last24), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, lineHeight = 19.sp)
         }
-        Note(if (next >= .5) "${next.int()} mm in den nächsten 24 Std. erwartet." else "Kein Niederschlag in den nächsten 24 Std. erwartet.")
+        Note(if (next >= .5) tr(R.string.precip_next, next.int()) else tr(R.string.precip_none))
     }
 }
 
@@ -477,13 +478,13 @@ fun FeelsTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifier, o
     val diff = c.feels - c.temp
     val note = when {
         diff.isNaN() -> ""
-        abs(diff) < 1.5 -> "Ähnelt der aktuellen Temperatur."
-        diff < 0 && c.wind > 15 -> "Der Wind lässt es kälter wirken."
-        diff < 0 -> "Fühlt sich kälter an."
-        c.humidity > 65 -> "Die Feuchtigkeit lässt es wärmer wirken."
-        else -> "Fühlt sich wärmer an."
+        abs(diff) < 1.5 -> tr(R.string.feels_same)
+        diff < 0 && c.wind > 15 -> tr(R.string.feels_wind)
+        diff < 0 -> tr(R.string.feels_colder)
+        c.humidity > 65 -> tr(R.string.feels_humid)
+        else -> tr(R.string.feels_warmer)
     }
-    Tile(Glyph.THERMO, "Gefühlt", key, sticky, modifier, onClick = onClick) {
+    Tile(Glyph.THERMO, tr(R.string.t_feels), key, sticky, modifier, onClick = onClick) {
         BigValue(c.feels.deg())
         Note(note)
     }
@@ -492,9 +493,9 @@ fun FeelsTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifier, o
 @Composable
 fun HumidityTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifier, onClick: () -> Unit) {
     val dew = w.hoursFromNow.firstOrNull()?.dew ?: Double.NaN
-    Tile(Glyph.HUMIDITY, "Feuchtigkeit", key, sticky, modifier, onClick = onClick) {
+    Tile(Glyph.HUMIDITY, tr(R.string.t_humidity), key, sticky, modifier, onClick = onClick) {
         BigValue("${w.current.humidity.int()} %")
-        Note("Der Taupunkt liegt derzeit bei ${dew.deg()}.")
+        Note(tr(R.string.dew_note, dew.deg()))
     }
 }
 
@@ -504,12 +505,12 @@ fun VisibilityTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifi
     val km = metres / 1000
     val note = when {
         km.isNaN() -> ""
-        km >= 20 -> "Vollkommen klare Sicht."
-        km >= 10 -> "Gute Sicht."
-        km >= 4 -> "Etwas diesig."
-        else -> "Eingeschränkte Sicht."
+        km >= 20 -> tr(R.string.vis_perfect)
+        km >= 10 -> tr(R.string.vis_good)
+        km >= 4 -> tr(R.string.vis_hazy)
+        else -> tr(R.string.vis_poor)
     }
-    Tile(Glyph.EYE, "Sichtweite", key, sticky, modifier, onClick = onClick) {
+    Tile(Glyph.EYE, tr(R.string.t_visibility), key, sticky, modifier, onClick = onClick) {
         BigValue(km.int(), "km")
         Note(note)
     }
@@ -522,12 +523,12 @@ fun PressureTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifier
     val delta = soon - p
     val trend = when {
         delta.isNaN() -> ""
-        delta > 0.7 -> "Steigend"
-        delta < -0.7 -> "Fallend"
-        else -> "Gleichbleibend"
+        delta > 0.7 -> tr(R.string.p_rising)
+        delta < -0.7 -> tr(R.string.p_falling)
+        else -> tr(R.string.p_steady)
     }
     val move by rememberReveal(150, 1200)
-    Tile(Glyph.GAUGE, "Luftdruck", key, sticky, modifier, onClick = onClick) {
+    Tile(Glyph.GAUGE, tr(R.string.t_pressure), key, sticky, modifier, onClick = onClick) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Canvas(Modifier.size(116.dp)) {
                 val r = size.minDimension / 2
@@ -557,13 +558,13 @@ fun PressureTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifier
 @Composable
 fun MoonTile(w: Weather, key: Any, sticky: StickyContext, modifier: Modifier) {
     val m = remember(w.current.time) { moonInfo(w.current.time) }
-    Tile(Glyph.MOON, "Mond", key, sticky, modifier) {
+    Tile(Glyph.MOON, tr(R.string.t_moon), key, sticky, modifier) {
         Column {
             Text(m.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 2)
             Spacer(Modifier.height(6.dp))
             MoonDisc(m.phase, Modifier.size(58.dp))
         }
-        Note("${(m.illumination * 100).roundToInt()} % beleuchtet · Vollmond in ${m.daysToFull} ${if (m.daysToFull == 1) "Tag" else "Tagen"}")
+        Note(tr(R.string.m_lit, (m.illumination * 100).roundToInt()) + " · " + trPlural(R.plurals.m_full_in, m.daysToFull))
     }
 }
 
@@ -597,7 +598,7 @@ private val AQI_COLORS = listOf(Color(0xFF4CD964), Color(0xFFFFD60A), Color(0xFF
 
 @Composable
 fun AirCard(air: Air, key: Any, sticky: StickyContext) {
-    GlassCard(key, sticky, Modifier.fillMaxWidth(), header = { CardTitle(Glyph.AIR, "Luftqualität") }) {
+    GlassCard(key, sticky, Modifier.fillMaxWidth(), header = { CardTitle(Glyph.AIR, tr(R.string.t_air)) }) {
         Column(Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp)) {
             Row(verticalAlignment = Alignment.Bottom) {
                 BigValue(air.aqi.int())
@@ -608,7 +609,7 @@ fun AirCard(air: Air, key: Any, sticky: StickyContext) {
             ScaleBar(if (air.aqi.isNaN()) 0f else (air.aqi / 100).toFloat(), AQI_COLORS)
             Spacer(Modifier.height(10.dp))
             Text(
-                "Europäischer Luftqualitätsindex. PM2,5: ${air.pm25.int()} · PM10: ${air.pm10.int()} · Ozon: ${air.ozone.int()} · NO₂: ${air.no2.int()} µg/m³",
+                tr(R.string.aqi_details, air.pm25.int(), air.pm10.int(), air.ozone.int(), air.no2.int()),
                 fontSize = 13.sp, lineHeight = 18.sp, color = Color.White.copy(alpha = .8f),
             )
         }
@@ -622,7 +623,7 @@ fun MapCard(key: Any, sticky: StickyContext, onClick: () -> Unit) {
     val sweep by rememberInfiniteTransition(label = "radar").animateFloat(
         0f, 360f, infiniteRepeatable(tween(4200, easing = LinearEasing)), label = "s",
     )
-    Tile(Glyph.MAP, "Niederschlagskarte", key, sticky, Modifier.fillMaxWidth(), height = 170.dp, onClick = onClick) {
+    Tile(Glyph.MAP, tr(R.string.t_map), key, sticky, Modifier.fillMaxWidth(), height = 170.dp, onClick = onClick) {
         Box(Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)).background(Color.Black.copy(alpha = .22f))) {
             Canvas(Modifier.fillMaxSize()) {
                 val r = size.maxDimension * .62f
@@ -637,7 +638,7 @@ fun MapCard(key: Any, sticky: StickyContext, onClick: () -> Unit) {
                 drawCircle(Color.White, 5.dp.toPx())
                 drawCircle(Color(0xFF0A84FF), 3.5.dp.toPx())
             }
-            Text("Radar, Temperatur und Wind öffnen", fontSize = 13.sp, fontWeight = FontWeight.Medium, modifier = Modifier.align(Alignment.BottomCenter).padding(10.dp))
+            Text(tr(R.string.map_open), fontSize = 13.sp, fontWeight = FontWeight.Medium, modifier = Modifier.align(Alignment.BottomCenter).padding(10.dp))
         }
     }
 }

@@ -24,7 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import de.tonyapps.wetter.R
 import de.tonyapps.wetter.data.Changelog
+import de.tonyapps.wetter.data.tr
 import de.tonyapps.wetter.update.AppRelease
 import de.tonyapps.wetter.update.UpdateState
 import de.tonyapps.wetter.update.Updater
@@ -38,12 +40,12 @@ fun VersionRow() {
     val context = LocalContext.current
     val state = Updater.state
     val status = when (state) {
-        UpdateState.Idle -> "Tippe zum Suchen nach Updates"
-        UpdateState.Checking -> "Suche nach Updates …"
-        UpdateState.UpToDate -> "Aktuell"
-        is UpdateState.Available -> "Update verfügbar: ${state.release.title}"
-        is UpdateState.Downloading -> "Wird geladen: ${(state.progress * 100).toInt()} %"
-        is UpdateState.Installing -> "Wird installiert …"
+        UpdateState.Idle -> tr(R.string.u_tap_search)
+        UpdateState.Checking -> tr(R.string.u_searching)
+        UpdateState.UpToDate -> tr(R.string.u_current)
+        is UpdateState.Available -> tr(R.string.u_available_named, state.release.title)
+        is UpdateState.Downloading -> tr(R.string.u_loading, (state.progress * 100).toInt())
+        is UpdateState.Installing -> tr(R.string.u_installing)
         is UpdateState.Failed -> state.message
     }
     val highlight = state is UpdateState.Available
@@ -130,7 +132,7 @@ private fun SheetContent(release: AppRelease, state: UpdateState) {
             .pointerInput(Unit) { detectTapGestures { } }
             .padding(start = 18.dp, end = 18.dp, top = 18.dp, bottom = bottom + 16.dp),
     ) {
-        Text("Update verfügbar", fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+        Text(tr(R.string.u_available), fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
         Text(release.title, fontSize = 14.sp, color = Color.White.copy(alpha = .65f))
         Spacer(Modifier.height(10.dp))
         release.notes.take(6).forEach { note ->
@@ -142,11 +144,11 @@ private fun SheetContent(release: AppRelease, state: UpdateState) {
         }
         Spacer(Modifier.height(16.dp))
         when (state) {
-            is UpdateState.Downloading -> ProgressLine(state.progress, "Wird geladen: ${(state.progress * 100).toInt()} %")
-            is UpdateState.Installing -> ProgressLine(1f, "Bitte die Installation bestätigen")
+            is UpdateState.Downloading -> ProgressLine(state.progress, tr(R.string.u_loading, (state.progress * 100).toInt()))
+            is UpdateState.Installing -> ProgressLine(1f, tr(R.string.u_confirm))
             else -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SheetButton("Später", Color(0xFF2C2C2E), Modifier.weight(1f)) { Updater.sheetHidden = true }
-                SheetButton("Aktualisieren", Blue, Modifier.weight(1f)) { Updater.install(context, release) }
+                SheetButton(tr(R.string.u_later), Color(0xFF2C2C2E), Modifier.weight(1f)) { Updater.sheetHidden = true }
+                SheetButton(tr(R.string.u_update), Blue, Modifier.weight(1f)) { Updater.install(context, release) }
             }
         }
     }
