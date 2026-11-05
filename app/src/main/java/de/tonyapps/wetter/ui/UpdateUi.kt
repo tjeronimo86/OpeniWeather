@@ -44,8 +44,6 @@ fun VersionRow() {
         UpdateState.Checking -> tr(R.string.u_searching)
         UpdateState.UpToDate -> tr(R.string.u_current)
         is UpdateState.Available -> tr(R.string.u_available_named, state.release.title)
-        is UpdateState.Downloading -> tr(R.string.u_loading, (state.progress * 100).toInt())
-        is UpdateState.Installing -> tr(R.string.u_installing)
         is UpdateState.Failed -> state.message
     }
     val highlight = state is UpdateState.Available
@@ -89,12 +87,7 @@ fun VersionRow() {
 @Composable
 fun UpdateSheet() {
     val state = Updater.state
-    val release: AppRelease? = when (state) {
-        is UpdateState.Available -> state.release
-        is UpdateState.Downloading -> state.release
-        is UpdateState.Installing -> state.release
-        else -> null
-    }
+    val release: AppRelease? = (state as? UpdateState.Available)?.release
     val shown = release != null && !Updater.sheetHidden
     // Beim Ausblenden bleibt der Inhalt noch stehen
     var last by remember { mutableStateOf(release) }
@@ -115,13 +108,13 @@ fun UpdateSheet() {
             enter = slideInVertically(spring(dampingRatio = .9f, stiffness = 320f)) { it } + fadeIn(),
             exit = slideOutVertically(tween(240)) { it } + fadeOut(),
         ) {
-            last?.let { SheetContent(it, state) }
+            last?.let { SheetContent(it) }
         }
     }
 }
 
 @Composable
-private fun SheetContent(release: AppRelease, state: UpdateState) {
+private fun SheetContent(release: AppRelease) {
     val context = LocalContext.current
     val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     Column(
@@ -143,13 +136,9 @@ private fun SheetContent(release: AppRelease, state: UpdateState) {
             }
         }
         Spacer(Modifier.height(16.dp))
-        when (state) {
-            is UpdateState.Downloading -> ProgressLine(state.progress, tr(R.string.u_loading, (state.progress * 100).toInt()))
-            is UpdateState.Installing -> ProgressLine(1f, tr(R.string.u_confirm))
-            else -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                SheetButton(tr(R.string.u_later), Color(0xFF2C2C2E), Modifier.weight(1f)) { Updater.sheetHidden = true }
-                SheetButton(tr(R.string.u_update), Blue, Modifier.weight(1f)) { Updater.install(context, release) }
-            }
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            SheetButton(tr(R.string.u_later), Color(0xFF2C2C2E), Modifier.weight(1f)) { Updater.sheetHidden = true }
+            SheetButton(tr(R.string.u_download), Blue, Modifier.weight(1f)) { Updater.download(context, release) }
         }
     }
 }
@@ -167,15 +156,4 @@ private fun SheetButton(label: String, color: Color, modifier: Modifier, onClick
             .clickable(onClick = onClick)
             .padding(vertical = 13.dp),
     )
-}
-
-@Composable
-private fun ProgressLine(progress: Float, label: String) {
-    Column {
-        Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(Color(0xFF3A3A3C))) {
-            Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(Blue))
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(label, fontSize = 14.sp, color = Color.White.copy(alpha = .75f))
-    }
 }

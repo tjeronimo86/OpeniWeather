@@ -5,6 +5,7 @@
 - Die App folgt der Sprache des Handys; in den Android-Einstellungen lässt sich die Sprache je App wählen
 - Ortssuche, Wochentage, Karte und Widgets folgen ebenfalls der Sprache
 - Der Update-Verlauf erscheint auf Deutsch und Englisch
+- Updates werden jetzt im Browser geladen: Die App meldet neue Versionen, installiert aber nicht mehr selbst, weil Play Protect sie deshalb gewarnt hat
 
 ## 1.7 – 5. November 2026
 - App-Version mit Update-Knopf in der Ortsliste

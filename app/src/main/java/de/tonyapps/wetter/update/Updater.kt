@@ -1,10 +1,8 @@
 package de.tonyapps.wetter.update
 
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageInstaller
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -27,14 +25,12 @@ sealed interface UpdateState {
     data object Checking : UpdateState
     data object UpToDate : UpdateState
     data class Available(val release: AppRelease) : UpdateState
-    data class Downloading(val release: AppRelease, val progress: Float) : UpdateState
-    data class Installing(val release: AppRelease) : UpdateState
     data class Failed(val message: String) : UpdateState
 }
 
 /**
- * Sucht auf GitHub nach neuen Versionen und installiert sie ueber den PackageInstaller.
- * Android prueft dabei selbst die Signatur: Fremd signierte APKs lehnt es als Update ab.
+ * Sucht auf GitHub nach neuen Versionen. Installiert wird von Hand aus dem Browser;
+ * Android prueft dabei die Signatur und lehnt fremd signierte APKs als Update ab.
  */
 object Updater {
     private const val CHECK_EVERY_MS = 12 * 60 * 60 * 1000L
@@ -63,7 +59,7 @@ object Updater {
     }
 
     fun check(context: Context, silent: Boolean = false) {
-        if (state is UpdateState.Checking || state is UpdateState.Downloading) return
+        if (state is UpdateState.Checking) return
         sheetHidden = false
         state = UpdateState.Checking
         scope.launch {
@@ -121,85 +117,13 @@ object Updater {
         return section.lineSequence().filter { it.startsWith("- ") }.map { it.removePrefix("- ").trim() }.toList()
     }
 
-    fun install(context: Context, release: AppRelease) {
-        if (state is UpdateState.Downloading) return
-        sheetHidden = false
-        state = UpdateState.Downloading(release, 0f)
-        val app = context.applicationContext
-        scope.launch {
-            val installer = app.packageManager.packageInstaller
-            val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
-            params.setAppPackageName(app.packageName)
-            if (release.size > 0) params.setSize(release.size)
-            var sessionId = -1
-            try {
-                sessionId = installer.createSession(params)
-                installer.openSession(sessionId).use { session ->
-                    val connection = open(release.url)
-                    try {
-                        val total = connection.contentLengthLong.takeIf { it > 0 } ?: release.size
-                        session.openWrite("wetter.apk", 0, total).use { out ->
-                            connection.inputStream.use { input ->
-                                val buffer = ByteArray(64 * 1024)
-                                var done = 0L
-                                var shown = 0f
-                                while (true) {
-                                    val read = input.read(buffer)
-                                    if (read < 0) break
-                                    out.write(buffer, 0, read)
-                                    done += read
-                                    val progress = if (total > 0) done.toFloat() / total else 0f
-                                    if (progress - shown >= .01f) {
-                                        shown = progress
-                                        state = UpdateState.Downloading(release, progress)
-                                    }
-                                }
-                            }
-                            session.fsync(out)
-                        }
-                    } finally {
-                        connection.disconnect()
-                    }
-                    state = UpdateState.Installing(release)
-                    val result = Intent(app, UpdateReceiver::class.java).setAction(ACTION).setPackage(app.packageName)
-                    val pending = PendingIntent.getBroadcast(
-                        app, sessionId, result,
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
-                    )
-                    session.commit(pending.intentSender)
-                }
-            } catch (e: Exception) {
-                if (sessionId != -1) runCatching { installer.abandonSession(sessionId) }
-                state = UpdateState.Failed(tr(R.string.u_err_download))
-            }
-        }
-    }
-
-    fun finished(success: Boolean, message: String?) {
-        // Bei Erfolg beendet Android die App ohnehin, um sie zu ersetzen
-        if (!success) state = UpdateState.Failed(message ?: tr(R.string.u_err_install))
-    }
-
-    fun cancelled() {
-        state = UpdateState.Idle
-    }
-}
-
-/** Antwort des Systems auf die Installation. */
-class UpdateReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        when (intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)) {
-            PackageInstaller.STATUS_PENDING_USER_ACTION -> {
-                val confirm = intent.getParcelableExtra(Intent.EXTRA_INTENT, Intent::class.java) ?: return
-                context.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
-            PackageInstaller.STATUS_SUCCESS -> Updater.finished(true, null)
-            PackageInstaller.STATUS_FAILURE_ABORTED -> Updater.cancelled()
-            PackageInstaller.STATUS_FAILURE_INCOMPATIBLE,
-            PackageInstaller.STATUS_FAILURE_CONFLICT,
-            -> Updater.finished(false, tr(R.string.u_err_conflict))
-            PackageInstaller.STATUS_FAILURE_BLOCKED -> Updater.finished(false, tr(R.string.u_err_blocked))
-            else -> Updater.finished(false, intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE))
-        }
+    /**
+     * Oeffnet die APK im Browser. Die App installiert bewusst nicht selbst: Die dafuer noetige
+     * Berechtigung laesst Play Protect die App als schaedlich einstufen.
+     */
+    fun download(context: Context, release: AppRelease) {
+        sheetHidden = true
+        val open = Intent(Intent.ACTION_VIEW, Uri.parse(release.url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(open)
     }
 }

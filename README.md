@@ -16,7 +16,7 @@ Kotlin und Jetpack Compose, ab Android 13.
 - UV-Index, Wind, Niederschlag, Luftfeuchte, Sichtweite, Luftdruck, Luftqualität, Mond
 - Karte mit Regenradar, Temperatur und Wind
 - Mehrere Orte und Widgets für den Startbildschirm
-- Update-Suche und Installation direkt aus der App
+- Update-Suche mit Download der neuen Version
 - Sprachen: Deutsch, Englisch, Französisch, Spanisch, Portugiesisch (Portugal), Polnisch
 
 ## Installation

@@ -16,7 +16,7 @@ Kotlin and Jetpack Compose, Android 13 or newer.
 - UV index, wind, precipitation, humidity, visibility, pressure, air quality, moon
 - Map with rain radar, temperature and wind
 - Multiple locations and home screen widgets
-- Update check and installation right from the app
+- Update check with a download link for new versions
 - Languages: German, English, French, Spanish, Portuguese (Portugal), Polish
 
 ## Installation

@@ -5,6 +5,7 @@
 - The app follows your phone's language; Android settings let you pick a language per app
 - Place search, weekdays, map and widgets follow the language too
 - This changelog appears in German and English
+- Updates now download in your browser: the app reports new versions but no longer installs them itself, because Play Protect flagged it for that
 
 ## 1.7 – November 5, 2026
 - App version with an update button in the location list
