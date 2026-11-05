@@ -7,7 +7,18 @@ Kotlin and Jetpack Compose, Android 13 or newer.
 
 [Changelog](changelog/CHANGELOG.en.md) · [Downloads](../../releases/latest)
 
-<!-- SCREENSHOTS -->
+<p align="center">
+  <img src="docs/screenshots/en-day.jpg" width="24%" alt="Main view by day">
+  <img src="docs/screenshots/en-rain.jpg" width="24%" alt="Rain with cards">
+  <img src="docs/screenshots/en-night.jpg" width="24%" alt="Clear night with moon">
+  <img src="docs/screenshots/en-map.jpg" width="24%" alt="Temperature map">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/en-widget-large.png" width="38%" alt="Large widget">
+  <img src="docs/screenshots/en-widget-sun.png" width="20%" alt="Sun widget">
+  <img src="docs/screenshots/en-widget-daily.png" width="38%" alt="Daily forecast widget">
+</p>
 
 ## Features
 
