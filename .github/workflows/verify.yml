@@ -11,7 +11,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v5
 
@@ -42,9 +42,10 @@ jobs:
           profile: pixel_6
           disable-animations: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -dns-server 8.8.8.8
-          script: bash tools/ci/verify.sh
+          script: timeout 3300 bash tools/ci/verify.sh
 
       - name: Ergebnis bereitstellen
+        if: always()
         uses: softprops/action-gh-release@v2
         with:
           tag_name: verify

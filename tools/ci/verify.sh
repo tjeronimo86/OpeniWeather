@@ -32,6 +32,8 @@ for lang in de en fr es pt-PT pl; do
 done
 adb pull /sdcard/Android/data/$PKG/files/widgets "$OUT/widgets"
 
+(cd out && zip -qr verify.zip verify)
+
 # Hohe Aufloesung fuers README
 adb shell cmd locale set-app-locales $PKG --locales en
 sleep 2
@@ -54,6 +56,6 @@ adb shell input tap 950 290
 sleep 30
 shot readme-de-map
 
-adb logcat -d -s WetterDebug:* WetterMap:* AndroidRuntime:E System.err:W > "$OUT/log.txt"
+timeout 60 adb logcat -d -s 'WetterDebug:*' 'WetterMap:*' AndroidRuntime:E System.err:W > "$OUT/log.txt"
 (cd out && zip -qr verify.zip verify)
 exit 0
