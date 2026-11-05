@@ -14,7 +14,8 @@ uniform float uDay;     // 0 Nacht .. 1 Tag
 uniform float uDusk;    // 0..1 Daemmerungsfaerbung
 uniform vec2  uSun;     // Sonne/Mond in UV (y nach unten, x 0..1)
 uniform float uMoon;    // Mondphase 0..1 (0 Neumond, .5 Vollmond)
-uniform float uSunVis;  // 0..1, blendet Sonne und Mond beim Ortswechsel aus
+uniform float uSunVis;  // 0..1, Sichtbarkeit von Sonne bzw. Mond
+uniform float uMoonUp;  // 0 die Sonne steht am Himmel, 1 der Mond
 uniform float uLoopT;   // Widget: Schleifenlaenge in Wolkensekunden
 uniform float uLoopW;   // Widget: Anteil des Zustands eine Schleife frueher, 0 = aus (App)
 
@@ -168,19 +169,20 @@ vec3 stars(vec2 uv) {
 }
 
 // Mond mit Phase und leichter Oberflaeche. Gibt Farbe (rgb) und Deckung (a).
+// Der Schein kommt getrennt dazu, sonst entsteht am Rand der Scheibe ein Ring.
 vec4 moon(vec2 uv, vec2 c, float r) {
     vec2 d = (uv - c) / r;
     float l = length(d);
-    float glow = 0.20 * exp(-1.4 * max(l - 1.0, 0.0));
-    if (l > 1.02) return vec4(vec3(0.60, 0.68, 0.85) * glow * 0.5, 0.0);
+    if (l > 1.05) return vec4(0.0);
     float z = sqrt(max(1.0 - l * l, 0.0));
     float a = uMoon * 6.28318;
     vec3 sunDir = vec3(sin(a), 0.0, -cos(a));
     float lit = smoothstep(-0.05, 0.08, dot(vec3(d.x, d.y, z), sunDir));
     float maria = 0.74 + 0.26 * fbm(d * 2.4 + 3.0);
-    float disc = smoothstep(1.0, 0.97, l);
+    float disc = smoothstep(1.0, 0.95, l);
     vec3 col = vec3(0.97, 0.95, 0.88) * maria * lit + vec3(0.09, 0.11, 0.17) * (1.0 - lit);
-    return vec4(col, disc * (0.25 + 0.75 * lit));
+    // Die dunkle Seite ist nur am Nachthimmel als Schatten zu sehen
+    return vec4(col, disc * (lit + (1.0 - lit) * 0.25 * (1.0 - uDay)));
 }
 
 float rainLayer(vec2 uv, float scale, float speed, float seed) {
@@ -239,24 +241,26 @@ half4 main(vec2 frag) {
     vec3 col = skyColor(y);
 
     // Sterne nur nachts und wo wenig Wolken sind
-    col += stars(uv + vec2(uTime * 0.0008, 0.0)) * (1.0 - uDay) * (1.0 - smoothstep(0.55, 0.95, uCloud)) * smoothstep(0.92, 0.25, y);
+    float night = (1.0 - uDay) * (1.0 - uDay) * (1.0 - uDusk);
+    col += stars(uv + vec2(uTime * 0.0008, 0.0)) * night * (1.0 - smoothstep(0.55, 0.95, uCloud)) * smoothstep(0.92, 0.25, y);
 
     // Sonne und Mond sitzen hinter den Wolken
     vec2 sun = vec2(uSun.x * aspect, uSun.y);
     float sd = length(uv - sun);
     float sunGlow = 0.0;
     float discVis = uSunVis * (1.0 - smoothstep(0.35, 0.7, uCloud * uGrey));
-    if (uDay > 0.02) {
+    if (uDay > 0.02 && uMoonUp < 0.5) {
         float vis = uDay * (1.0 - 0.72 * uCloud * uGrey) * uSunVis;
         sunGlow = exp(-sd * 3.4) * 0.30 + exp(-sd * 16.0) * 0.45;
         vec3 tint = mix(vec3(1.0, 0.96, 0.84), vec3(1.0, 0.70, 0.42), uDusk);
         col += tint * sunGlow * vis;
-        col = mix(col, vec3(1.0, 0.99, 0.94), smoothstep(0.030, 0.026, sd) * vis * discVis);
+        col = mix(col, vec3(1.0, 0.99, 0.94), smoothstep(0.031, 0.024, sd) * vis * discVis);
     }
-    if (uDay < 0.5) {
+    if (uMoonUp > 0.5) {
+        // In der Daemmerung steht der Mond blass am hellen Himmel
+        float k = discVis * (1.0 - uDay * 0.65);
+        col += vec3(0.60, 0.68, 0.85) * exp(-sd * 9.0) * 0.16 * k * (1.0 - uDusk * 0.7);
         vec4 m = moon(uv, sun, 0.052);
-        float k = (1.0 - uDay * 2.0) * discVis;
-        col += m.rgb * (1.0 - m.a) * k;
         col = mix(col, m.rgb, m.a * k);
     }
 
@@ -304,7 +308,7 @@ half4 main(vec2 frag) {
         float rim = (1.0 - smoothstep(0.0, 0.55, dNear)) * smoothstep(0.02, 0.2, dNear);
         vec3 cloud = mix(shadeCol, lightCol, shNear);
         cloud += rim * sunGlow * 0.9 * vec3(1.0, 0.95, 0.85) * uDay;
-        float moonLight = exp(-sd * 5.0) * (1.0 - uDay) * 0.3;
+        float moonLight = exp(-sd * 5.0) * (1.0 - uDay) * 0.3 * uMoonUp * uSunVis;
         cloud += vec3(0.42, 0.48, 0.62) * moonLight * (0.4 + rim);
         col = mix(col, cloud, dNear * 0.97);
     }

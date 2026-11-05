@@ -5,6 +5,7 @@
 - Die App sucht selbst nach Updates und meldet neue Versionen
 - Updates lassen sich direkt aus der App herunterladen und installieren
 - Veröffentlichte Version läuft jetzt als optimierter Release-Build
+- Dämmerung korrigiert: Sonne und Mond erscheinen nicht mehr übereinander, und Sterne kommen erst bei dunklem Himmel
 
 ## 1.6 – 3. November 2026
 - Softwareversion unten in der Ortsliste

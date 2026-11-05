@@ -53,6 +53,7 @@ data class SkyParams(
     val sunY: Float = 0.14f,
     val moon: Float = 0.5f,
     val sunVis: Float = 1f,
+    val moonUp: Float = 0f,
 )
 
 private fun mix(a: Float, b: Float, t: Float) = a + (b - a) * t
@@ -70,6 +71,7 @@ fun lerpSky(a: SkyParams, b: SkyParams, t: Float) = SkyParams(
     sunY = mix(a.sunY, b.sunY, t),
     moon = mix(a.moon, b.moon, t),
     sunVis = mix(a.sunVis, b.sunVis, t),
+    moonUp = mix(a.moonUp, b.moonUp, t),
 )
 
 /**
@@ -83,7 +85,8 @@ fun lerpPages(a: SkyParams, b: SkyParams, t: Float): SkyParams {
         sunX = near.sunX,
         sunY = near.sunY,
         moon = near.moon,
-        sunVis = kotlin.math.abs(1f - 2f * t),
+        moonUp = near.moonUp,
+        sunVis = near.sunVis * kotlin.math.abs(1f - 2f * t),
     )
 }
 
@@ -96,8 +99,8 @@ val DEMO_SCENES: List<Pair<String, SkyParams>> = listOf(
     "Gewitter" to SkyParams(cloud = 1f, grey = 1f, rain = 0.95f, storm = 1f, day = 0.45f, sunX = 0.5f, sunY = 0.1f),
     "Schnee" to SkyParams(cloud = 1f, grey = 0.6f, snow = 0.75f, sunX = 0.5f, sunY = 0.1f),
     "Nebel" to SkyParams(cloud = 0.7f, grey = 0.6f, fog = 0.85f, sunX = 0.5f, sunY = 0.2f),
-    "Klare Nacht" to SkyParams(cloud = 0.08f, grey = 0.1f, day = 0f, sunX = 0.7f, sunY = 0.13f, moon = 0.36f),
-    "Bewölkte Nacht" to SkyParams(cloud = 0.62f, grey = 0.4f, day = 0f, sunX = 0.28f, sunY = 0.14f),
+    "Klare Nacht" to SkyParams(cloud = 0.08f, grey = 0.1f, day = 0f, moonUp = 1f, sunX = 0.7f, sunY = 0.13f, moon = 0.36f),
+    "Bewölkte Nacht" to SkyParams(cloud = 0.62f, grey = 0.4f, day = 0f, moonUp = 1f, sunX = 0.28f, sunY = 0.14f),
     "Sonnenuntergang" to SkyParams(cloud = 0.42f, grey = 0.05f, day = 0.72f, dusk = 0.9f, sunX = 0.3f, sunY = 0.62f),
 )
 
@@ -127,6 +130,11 @@ fun skyFor(w: Weather): SkyParams {
     val sunX = 0.14f + 0.72f * p
     val sunY = if (isSunUp) 0.62f - 0.50f * arc else 0.34f - 0.20f * arc
 
+    // Sonne und Mond teilen sich die Bahn nicht: Nach Sonnenuntergang gibt es nur den Mond.
+    // Am Horizont blenden beide aus, damit beim Wechsel keiner sichtbar springt.
+    val fromEvent = if (isSunUp) minOf(now - rise, set - now) else minOf(kotlin.math.abs(now - set), kotlin.math.abs(now - rise))
+    val bodyVis = (fromEvent / 1500f).coerceIn(0f, 1f)
+
     val cloudPct = (if (w.current.cloud.isNaN()) 50.0 else w.current.cloud).toFloat() / 100f
     val base = SkyParams(
         cloud = cloudPct * 0.96f,
@@ -136,6 +144,8 @@ fun skyFor(w: Weather): SkyParams {
         sunX = sunX,
         sunY = sunY,
         moon = moonInfo(now).phase.toFloat(),
+        sunVis = bodyVis,
+        moonUp = if (isSunUp) 0f else 1f,
     )
     return when (kindOf(w.current.code)) {
         Kind.CLEAR, Kind.MOSTLY_CLEAR, Kind.PARTLY -> base
@@ -243,6 +253,7 @@ fun SkyBackground(params: () -> SkyParams, modifier: Modifier = Modifier) {
                 shader.setFloatUniform("uSun", p.sunX, p.sunY)
                 shader.setFloatUniform("uMoon", p.moon)
                 shader.setFloatUniform("uSunVis", p.sunVis)
+                shader.setFloatUniform("uMoonUp", if (p.moonUp > .5f) 1f else 0f)
                 drawRect(brush, Offset.Zero, size)
             },
     )
