@@ -63,5 +63,6 @@ shot app-2-nach-update
 
 adb logcat -d -s WetterDebug:* WetterMap:* AndroidRuntime:E System.err:W > "$OUT/log.txt"
 adb logcat -d | grep -iE "wetter|Widgets|RemoteViews|TransactionTooLarge|exceeds|Fatal signal|has died" | tail -300 > "$OUT/log-all.txt"
+pkill -f "http.server 8765" || true
 (cd out && zip -qr verify.zip verify)
 exit 0
