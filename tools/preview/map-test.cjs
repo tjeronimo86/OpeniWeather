@@ -17,7 +17,7 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42
   return r.fulfill({contentType:'image/png',body:png});
  });
  await p.goto('file://'+path.resolve(__dirname,'../../app/src/main/assets/map/map.html'));
- await p.evaluate(()=>start(50.07,8.85,24,16));
+ await p.evaluate(()=>start(50.11,8.68,24,16));
  await p.waitForTimeout(1500);
  const frames=await p.evaluate(()=>({n:frames.length,idx:index,when:document.getElementById('when').textContent,fill:document.getElementById('fill').style.width}));
  await p.screenshot({path:out+'-rain.png'});

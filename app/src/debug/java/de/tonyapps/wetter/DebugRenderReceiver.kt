@@ -10,6 +10,8 @@ import android.util.Log
 import de.tonyapps.wetter.data.Parser
 import de.tonyapps.wetter.data.Store
 import de.tonyapps.wetter.sky.DEMO_SCENES
+import de.tonyapps.wetter.update.UpdateState
+import de.tonyapps.wetter.update.Updater
 import de.tonyapps.wetter.widget.SkyBitmap
 import de.tonyapps.wetter.widget.WidgetRenderer
 import de.tonyapps.wetter.widget.WidgetStyle
@@ -22,6 +24,16 @@ import java.io.File
 /** Schreibt alle Widget-Stile als PNG; so laesst sich das Ergebnis ohne Launcher ansehen. */
 class DebugRenderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == "de.tonyapps.wetter.DEBUG_UPDATE") {
+            Updater.apiUrl = intent.getStringExtra("api").orEmpty()
+            Updater.allowedDownload = "http://10.0.2.2"
+            Updater.check(context)
+            return
+        }
+        if (intent.action == "de.tonyapps.wetter.DEBUG_INSTALL") {
+            (Updater.state as? UpdateState.Available)?.let { Updater.install(context, it.release) }
+            return
+        }
         if (intent.action == "de.tonyapps.wetter.DEBUG_SCENE") {
             Widgets.debugSky = DEMO_SCENES[intent.getIntExtra("scene", 3)].second
             CoroutineScope(Dispatchers.IO).launch { Widgets.updateAll(context) }

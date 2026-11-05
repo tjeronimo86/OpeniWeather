@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application>
+    <application android:usesCleartextTraffic="true">
         <activity
             android:name=".DebugMapActivity"
             android:exported="true"
@@ -13,6 +13,8 @@
                 <action android:name="de.tonyapps.wetter.DEBUG_RENDER" />
                 <action android:name="de.tonyapps.wetter.DEBUG_PIN" />
                 <action android:name="de.tonyapps.wetter.DEBUG_SCENE" />
+                <action android:name="de.tonyapps.wetter.DEBUG_UPDATE" />
+                <action android:name="de.tonyapps.wetter.DEBUG_INSTALL" />
             </intent-filter>
         </receiver>
     </application>

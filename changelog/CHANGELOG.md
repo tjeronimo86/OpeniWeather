@@ -1,5 +1,11 @@
 # Update-Verlauf
 
+## 1.7 – 5. November 2026
+- App-Version mit Update-Knopf in der Ortsliste
+- Die App sucht selbst nach Updates und meldet neue Versionen
+- Updates lassen sich direkt aus der App herunterladen und installieren
+- Veröffentlichte Version läuft jetzt als optimierter Release-Build
+
 ## 1.6 – 3. November 2026
 - Softwareversion unten in der Ortsliste
 - Link zur neuesten Version auf GitHub

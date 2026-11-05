@@ -132,7 +132,7 @@ private fun DrawScope.flakes(s: Float, phase: Float, n: Int) {
     }
 }
 
-enum class Glyph { CALENDAR, CLOCK, SUN, SUNSET, WIND, DROP, THERMO, HUMIDITY, EYE, GAUGE, MOON, AIR, MAP, WARN }
+enum class Glyph { CALENDAR, CLOCK, SUN, SUNSET, WIND, DROP, THERMO, HUMIDITY, EYE, GAUGE, MOON, AIR, MAP, WARN, REFRESH }
 
 /** Kleine Liniensymbole in den Kartenkoepfen. */
 @Composable
@@ -233,6 +233,16 @@ fun GlyphIcon(glyph: Glyph, size: Dp, color: Color, modifier: Modifier = Modifie
                 drawPath(p, color, style = stroke)
                 line(Offset(s * .36f, s * .12f), Offset(s * .36f, s * .76f))
                 line(Offset(s * .64f, s * .24f), Offset(s * .64f, s * .88f))
+            }
+            Glyph.REFRESH -> {
+                drawArc(color, -50f, 310f, false, Offset(s * .14f, s * .14f), Size(s * .72f, s * .72f), style = stroke)
+                val p = Path().apply {
+                    moveTo(s * .95f, s * .12f)
+                    lineTo(s * .92f, s * .46f)
+                    lineTo(s * .60f, s * .34f)
+                    close()
+                }
+                drawPath(p, color)
             }
             Glyph.WARN -> {
                 val p = Path().apply {

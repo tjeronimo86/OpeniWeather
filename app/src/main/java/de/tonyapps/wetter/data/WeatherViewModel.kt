@@ -144,6 +144,6 @@ class WeatherViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     companion object {
-        val DEFAULT_PLACE = Place("default", "Obertshausen", "Hessen, Deutschland", "DE", 50.0717, 8.8497)
+        val DEFAULT_PLACE = Place("default", "Frankfurt am Main", "Hessen, Deutschland", "DE", 50.1109, 8.6821)
     }
 }

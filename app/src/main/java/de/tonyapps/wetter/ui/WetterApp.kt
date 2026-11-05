@@ -35,6 +35,7 @@ import de.tonyapps.wetter.data.Changelog
 import de.tonyapps.wetter.data.Place
 import de.tonyapps.wetter.data.WeatherViewModel
 import de.tonyapps.wetter.sky.*
+import de.tonyapps.wetter.update.Updater
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -66,7 +67,10 @@ fun WetterApp(openPlace: String? = null, vm: WeatherViewModel = viewModel()) {
         var detail by remember { mutableStateOf<DetailRequest?>(null) }
         var preview by remember { mutableStateOf<Place?>(null) }
         var showNews by remember { mutableStateOf(false) }
-        LaunchedEffect(Unit) { if (Changelog.isNew(context)) showNews = true }
+        LaunchedEffect(Unit) {
+            if (Changelog.isNew(context)) showNews = true
+            Updater.autoCheck(context)
+        }
 
         // Himmel je Seite. Zwischen den Seiten wird nicht ueberblendet, sondern gerechnet:
         // Die Parameter beider Orte werden passend zur Wischposition gemischt.
@@ -201,6 +205,8 @@ fun WetterApp(openPlace: String? = null, vm: WeatherViewModel = viewModel()) {
                 mapPlace?.let { shown.value = it }
                 shown.value?.let { MapScreen(it) { mapPlace = null } }
             }
+
+            UpdateSheet()
         }
     }
 }

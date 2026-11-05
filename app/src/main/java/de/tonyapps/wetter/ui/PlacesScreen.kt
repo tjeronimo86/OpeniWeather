@@ -1,7 +1,5 @@
 package de.tonyapps.wetter.ui
 
-import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
@@ -26,7 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
@@ -37,8 +34,6 @@ import de.tonyapps.wetter.sky.skyBrush
 import de.tonyapps.wetter.sky.skyFor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-private const val RELEASES_URL = "https://github.com/tjeronimo86/Wetter/releases/latest"
 
 @Composable
 fun PlacesScreen(
@@ -123,29 +118,9 @@ fun PlacesScreen(
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
                 }
-                item(key = "version") { VersionInfo() }
+                item(key = "version") { VersionRow() }
             }
         }
-    }
-}
-
-/** Softwareversion und Weg zur neuesten APK. Das Repo ist privat: GitHub verlangt im Browser den Login. */
-@Composable
-private fun VersionInfo() {
-    val context = LocalContext.current
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(Changelog.versionLabel(context), fontSize = 13.sp, color = Color.White.copy(alpha = .6f))
-        Text(
-            "Neueste Version auf GitHub ansehen",
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF0A84FF),
-            modifier = Modifier
-                .clickable {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(RELEASES_URL)))
-                }
-                .padding(vertical = 12.dp),
-        )
     }
 }
 

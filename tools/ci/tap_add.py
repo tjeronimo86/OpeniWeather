@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 root = ET.parse(sys.argv[1]).getroot()
 for node in root.iter("node"):
     label = (node.get("text") or "").lower()
-    if label in ("add automatically", "add to home screen", "add", "hinzufügen"):
+    if label in ("add automatically", "add to home screen", "add", "hinzufügen", "update", "aktualisieren", "install"):
         x0, y0, x1, y1 = map(int, re.findall(r"\d+", node.get("bounds")))
         print((x0 + x1) // 2, (y0 + y1) // 2)
         break

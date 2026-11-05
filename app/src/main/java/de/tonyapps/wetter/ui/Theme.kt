@@ -89,7 +89,7 @@ class TopInsetShape(private val inset: Float, private val radius: Float) : Shape
 class StickyContext(val list: LazyListState, val pinnedPx: Float)
 
 /**
- * iOS-Kartenverhalten: Laeuft die Karte unter den Kopfbereich, bleibt ihre Ueberschrift stehen,
+ * Klebende Karte: Laeuft die Karte unter den Kopfbereich, bleibt ihre Ueberschrift stehen,
  * der Inhalt rutscht darunter weg, und zum Schluss blendet die Karte aus.
  * Alles passiert in graphicsLayer, also ohne Recomposition.
  */

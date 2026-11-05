@@ -26,13 +26,13 @@ jobs:
           gradle-version: '8.9'
 
       # --stacktrace zeigt bei Kompilierfehlern die betroffene Datei und Zeile
-      - name: Debug-APK bauen
-        run: gradle assembleDebug --no-daemon --stacktrace
+      - name: APK bauen
+        run: gradle assembleRelease --no-daemon --stacktrace
 
       - name: APK umbenennen
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/debug/app-debug.apk \
+          cp app/build/outputs/apk/release/app-release.apk \
              out/wetter-${{ github.run_number }}.apk
 
       - name: Update-Verlauf lesen
