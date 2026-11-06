@@ -2,6 +2,7 @@
 
 ## 1.9 – 6. November 2026
 - Die App heißt jetzt OpeniWeather
+- Neue Adresse auf GitHub: github.com/tjeronimo86/OpeniWeather
 
 ## 1.8 – 5. November 2026
 - App auf Deutsch, Englisch, Französisch, Spanisch, Portugiesisch (Portugal) und Polnisch

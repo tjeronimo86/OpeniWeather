@@ -40,7 +40,7 @@ object Api {
         val c = URL(url).openConnection() as HttpURLConnection
         c.connectTimeout = 10_000
         c.readTimeout = 15_000
-        c.setRequestProperty("User-Agent", "OpeniWeather/1.9 (+https://github.com/tjeronimo86/Wetter)")
+        c.setRequestProperty("User-Agent", "OpeniWeather/1.9 (+https://github.com/tjeronimo86/OpeniWeather)")
         try {
             val status = c.responseCode
             if (status !in 200..299) throw IOException("HTTP $status")

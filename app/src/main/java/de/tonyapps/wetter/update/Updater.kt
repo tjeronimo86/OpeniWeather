@@ -36,8 +36,8 @@ object Updater {
     private const val CHECK_EVERY_MS = 12 * 60 * 60 * 1000L
     private const val ACTION = "de.tonyapps.wetter.UPDATE_RESULT"
 
-    var apiUrl = "https://api.github.com/repos/tjeronimo86/Wetter/releases/latest"
-    var allowedDownload = "https://github.com/tjeronimo86/Wetter/releases/download/"
+    var apiUrl = "https://api.github.com/repos/tjeronimo86/OpeniWeather/releases/latest"
+    var allowedDownload = "https://github.com/tjeronimo86/OpeniWeather/releases/download/"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
