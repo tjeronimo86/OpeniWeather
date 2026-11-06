@@ -54,7 +54,7 @@ fun MapScreen(place: Place, onClose: () -> Unit) {
                     setBackgroundColor(0xFF0B1C33.toInt())
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
-                    settings.userAgentString = "Wetter-App/1.7 (+https://github.com/tjeronimo86/Wetter)"
+                    settings.userAgentString = "OpeniWeather/1.9 (+https://github.com/tjeronimo86/Wetter)"
                     // Die Seite kommt aus file:// und holt Daten per fetch von den Wetterdiensten.
                     settings.allowUniversalAccessFromFileURLs = true
                     webChromeClient = object : WebChromeClient() {

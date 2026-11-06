@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.9 – November 6, 2026
+- The app is now called OpeniWeather
+
 ## 1.8 – November 5, 2026
 - App available in German, English, French, Spanish, Portuguese (Portugal) and Polish
 - The app follows your phone's language; Android settings let you pick a language per app

@@ -1,5 +1,8 @@
 # Update-Verlauf
 
+## 1.9 – 6. November 2026
+- Die App heißt jetzt OpeniWeather
+
 ## 1.8 – 5. November 2026
 - App auf Deutsch, Englisch, Französisch, Spanisch, Portugiesisch (Portugal) und Polnisch
 - Die App folgt der Sprache des Handys; in den Android-Einstellungen lässt sich die Sprache je App wählen

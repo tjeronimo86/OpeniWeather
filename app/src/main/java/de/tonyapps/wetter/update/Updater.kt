@@ -82,7 +82,7 @@ object Updater {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.connectTimeout = 10_000
         connection.readTimeout = 30_000
-        connection.setRequestProperty("User-Agent", "Wetter-App")
+        connection.setRequestProperty("User-Agent", "OpeniWeather")
         val status = connection.responseCode
         if (status !in 200..299) {
             connection.disconnect()

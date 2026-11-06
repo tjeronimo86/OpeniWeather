@@ -1,8 +1,8 @@
-# Weather
+# OpeniWeather
 
 [Deutsch](README.md) · **English**
 
-An Android weather app with an animated sky. A private hobby project, non-commercial.
+OpeniWeather is an Android weather app with an animated sky. A private hobby project, non-commercial.
 Kotlin and Jetpack Compose, Android 13 or newer.
 
 [Changelog](changelog/CHANGELOG.en.md) · [Downloads](../../releases/latest)

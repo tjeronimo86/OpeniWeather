@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Météo</string>
+    <string name="app_name">OpeniWeather</string>
     <string name="widget_small">Prévisions petit</string>
     <string name="widget_medium">Prévisions moyen</string>
     <string name="widget_large">Prévisions grand</string>

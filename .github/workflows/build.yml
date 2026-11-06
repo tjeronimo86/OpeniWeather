@@ -33,7 +33,7 @@ jobs:
         run: |
           mkdir -p out
           cp app/build/outputs/apk/release/app-release.apk \
-             out/wetter-${{ github.run_number }}.apk
+             out/openiweather-${{ github.run_number }}.apk
 
       - name: Update-Verlauf lesen
         id: notes
@@ -48,7 +48,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Wetter ${{ steps.notes.outputs.version }} (Build ${{ github.run_number }})
+          name: OpeniWeather ${{ steps.notes.outputs.version }} (Build ${{ github.run_number }})
           body_path: out/notes.md
           make_latest: true
           files: out/*.apk
