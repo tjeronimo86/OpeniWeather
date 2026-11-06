@@ -24,7 +24,8 @@ class DebugShotActivity : ComponentActivity() {
         val scroll = intent.getIntExtra("scroll", 0)
         val scale = if (intent.getIntExtra("hi", 0) == 1) 1.5f else 5f
         val sky = DEMO_SCENES[scene].second
-        val code = mapOf(0 to 0, 1 to 2, 2 to 3, 3 to 63, 4 to 95, 5 to 73, 6 to 45, 7 to 0, 8 to 2, 9 to 1)[scene] ?: 2
+        val temp = intent.getFloatExtra("temp", Float.NaN).toDouble().takeUnless { it.isNaN() }
+        val code = mapOf(0 to 0, 1 to 2, 2 to 3, 3 to 63, 4 to 95, 5 to 73, 6 to 45, 7 to 0, 8 to 2, 9 to 1, 10 to 1, 11 to 0)[scene] ?: 2
         setContent {
             val vm: WeatherViewModel = viewModel()
             WetterTheme {
@@ -32,12 +33,12 @@ class DebugShotActivity : ComponentActivity() {
                     SkyBackground({ sky }, fixedScale = scale)
                     val place = vm.places.first()
                     val weather = vm.weather[place.id]?.let {
-                        it.copy(current = it.current.copy(code = code, isDay = sky.day > .5f, cloud = sky.cloud * 100.0), alerts = emptyList())
+                        it.copy(current = it.current.copy(code = code, isDay = sky.day > .5f, cloud = sky.cloud * 100.0, temp = temp ?: it.current.temp), alerts = emptyList())
                     }
                     WeatherPage(
                         place = place, weather = weather, errorText = null, refreshing = false, onRefresh = {},
                         demoName = null, onCycleDemo = {}, onDetail = {}, onMap = {},
-                        bottomPadding = 20.dp, startItem = scroll, rainOverride = sky.rain,
+                        bottomPadding = 20.dp, startItem = scroll, fxOverride = de.tonyapps.wetter.ui.CardFxOverride(sky.rain, sky.snow, temp),
                     )
                 }
             }

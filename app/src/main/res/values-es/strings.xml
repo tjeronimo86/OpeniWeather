@@ -55,6 +55,8 @@
     <string name="s_snow">Nieve</string>
     <string name="s_clear_night">Noche despejada</string>
     <string name="s_cloudy_night">Noche nublada</string>
+    <string name="s_frost">Helada</string>
+    <string name="s_heat">Calor</string>
     <string name="s_sunset">Puesta de sol</string>
     <string name="sum_gusts">Rachas de hasta %1$d km/h.</string>
     <string name="sum_thunder_at">Tormentas previstas hacia las %1$s.</string>

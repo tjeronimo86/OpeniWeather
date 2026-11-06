@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.11 – November 6, 2026
+- In frost, icicles hang from the bottom edge of the cards
+- In snow, a layer of snow settles on the top edge
+- In heat from 28 °C, the cards fog up with condensation beads
+- New preview scenes "Frost" and "Heat" (long-press the location name)
+
 ## 1.10 – November 6, 2026
 - When it rains, drops hit the cards, splash off the top edge and run down the sides
 

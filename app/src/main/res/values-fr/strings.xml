@@ -55,6 +55,8 @@
     <string name="s_snow">Neige</string>
     <string name="s_clear_night">Nuit dégagée</string>
     <string name="s_cloudy_night">Nuit nuageuse</string>
+    <string name="s_frost">Gel</string>
+    <string name="s_heat">Canicule</string>
     <string name="s_sunset">Coucher du soleil</string>
     <string name="sum_gusts">Rafales jusqu\'à %1$d km/h.</string>
     <string name="sum_thunder_at">Orages attendus vers %1$s.</string>

@@ -103,6 +103,15 @@ val DEMO_SCENES: List<Pair<Int, SkyParams>> = listOf(
     R.string.s_clear_night to SkyParams(cloud = 0.08f, grey = 0.1f, day = 0f, moonUp = 1f, sunX = 0.7f, sunY = 0.13f, moon = 0.36f),
     R.string.s_cloudy_night to SkyParams(cloud = 0.62f, grey = 0.4f, day = 0f, moonUp = 1f, sunX = 0.28f, sunY = 0.14f),
     R.string.s_sunset to SkyParams(cloud = 0.42f, grey = 0.05f, day = 0.72f, dusk = 0.9f, sunX = 0.3f, sunY = 0.62f),
+    R.string.s_frost to SkyParams(cloud = 0.18f, grey = 0.05f, sunX = 0.7f, sunY = 0.22f),
+    R.string.s_heat to SkyParams(cloud = 0.04f, sunX = 0.55f, sunY = 0.1f),
+)
+
+/** Feste Temperaturen fuer Szenen, deren Karteneffekt an der Temperatur haengt. */
+val DEMO_TEMPS: Map<Int, Double> = mapOf(
+    R.string.s_snow to -2.0,
+    R.string.s_frost to -6.0,
+    R.string.s_heat to 33.0,
 )
 
 /** Uebersetzt die Wetterdaten in Himmel-Parameter. */

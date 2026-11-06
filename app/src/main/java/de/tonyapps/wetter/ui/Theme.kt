@@ -119,7 +119,7 @@ fun GlassCard(
         Modifier
     }
 
-    val rain = LocalRainFx.current
+    val fx = LocalCardFx.current
     val seed = remember(itemKey) { itemKey.hashCode() }
     // Aussen ungeschnitten, damit Spritzer ueber die Kante hinausfliegen duerfen
     Box(
@@ -127,10 +127,10 @@ fun GlassCard(
             .onSizeChanged { cardH = it.height.toFloat() }
             .drawWithContent {
                 drawContent()
-                if (rain != null) {
+                if (fx != null) {
                     val o = overlap()
                     val fadeZone = (if (headerH > 0f) headerH else radius * 3f)
-                    drawCardRain(rain, o, ((cardH - o) / fadeZone).coerceIn(0f, 1f), radius, seed)
+                    drawCardFx(fx, o, ((cardH - o) / fadeZone).coerceIn(0f, 1f), radius, seed)
                 }
             },
     ) {

@@ -55,6 +55,8 @@
     <string name="s_snow">Schnee</string>
     <string name="s_clear_night">Klare Nacht</string>
     <string name="s_cloudy_night">Bewölkte Nacht</string>
+    <string name="s_frost">Frost</string>
+    <string name="s_heat">Hitze</string>
     <string name="s_sunset">Sonnenuntergang</string>
     <string name="sum_gusts">Windböen mit bis zu %1$d km/h.</string>
     <string name="sum_thunder_at">Gewitter erwartet gegen %1$s.</string>

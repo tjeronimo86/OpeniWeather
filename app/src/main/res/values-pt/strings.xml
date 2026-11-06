@@ -55,6 +55,8 @@
     <string name="s_snow">Neve</string>
     <string name="s_clear_night">Noite limpa</string>
     <string name="s_cloudy_night">Noite nublada</string>
+    <string name="s_frost">Geada</string>
+    <string name="s_heat">Calor</string>
     <string name="s_sunset">Pôr do sol</string>
     <string name="sum_gusts">Rajadas até %1$d km/h.</string>
     <string name="sum_thunder_at">Trovoada prevista por volta das %1$s.</string>

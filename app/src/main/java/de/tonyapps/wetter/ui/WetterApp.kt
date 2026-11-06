@@ -135,7 +135,12 @@ fun WetterApp(openPlace: String? = null, vm: WeatherViewModel = viewModel()) {
                     onDetail = { detail = it },
                     onMap = { mapPlace = place },
                     bottomPadding = barHeight + bottomInset,
-                    rainOverride = if (demo >= 0) DEMO_SCENES[demo].second.rain else null,
+                    fxOverride = if (demo >= 0) {
+                        val scene = DEMO_SCENES[demo]
+                        CardFxOverride(scene.second.rain, scene.second.snow, DEMO_TEMPS[scene.first])
+                    } else {
+                        null
+                    },
                 )
             }
 

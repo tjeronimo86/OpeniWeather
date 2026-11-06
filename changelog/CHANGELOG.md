@@ -1,5 +1,11 @@
 # Update-Verlauf
 
+## 1.11 – 6. November 2026
+- Bei Frost hängen Eiszapfen an der Unterkante der Karten
+- Bei Schnee bleibt eine Schneeschicht auf der Oberkante liegen
+- Bei Hitze ab 28 °C beschlagen die Karten mit Kondenströpfchen
+- Neue Vorschau-Szenen „Frost“ und „Hitze“ (lange auf den Ortsnamen drücken)
+
 ## 1.10 – 6. November 2026
 - Bei Regen prasseln Tropfen auf die Karten, spritzen an der Oberkante hoch und rinnen an den Seiten herunter
 

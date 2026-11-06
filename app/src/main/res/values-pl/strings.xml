@@ -55,6 +55,8 @@
     <string name="s_snow">Śnieg</string>
     <string name="s_clear_night">Bezchmurna noc</string>
     <string name="s_cloudy_night">Pochmurna noc</string>
+    <string name="s_frost">Mróz</string>
+    <string name="s_heat">Upał</string>
     <string name="s_sunset">Zachód słońca</string>
     <string name="sum_gusts">Porywy wiatru do %1$d km/h.</string>
     <string name="sum_thunder_at">Burze spodziewane około %1$s.</string>

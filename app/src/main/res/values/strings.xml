@@ -55,6 +55,8 @@
     <string name="s_snow">Snow</string>
     <string name="s_clear_night">Clear night</string>
     <string name="s_cloudy_night">Cloudy night</string>
+    <string name="s_frost">Frost</string>
+    <string name="s_heat">Heat</string>
     <string name="s_sunset">Sunset</string>
     <string name="sum_gusts">Wind gusts up to %1$d km/h.</string>
     <string name="sum_thunder_at">Thunderstorms expected around %1$s.</string>
