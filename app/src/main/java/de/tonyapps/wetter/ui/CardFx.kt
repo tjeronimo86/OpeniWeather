@@ -135,7 +135,7 @@ private fun DrawScope.drawSnowCap(fx: CardFx, top: Float, alpha: Float, radius: 
     val dp = density
     val w = size.width
     val g = grow(t, 3f)
-    val thickness = (2.5f + 5.5f * fx.snow.coerceIn(0f, 1f)) * dp * g
+    val thickness = (4f + 7f * fx.snow.coerceIn(0f, 1f)) * dp * g
     if (thickness < .3f * dp) return
     // Kartenkante samt runder Ecken
     fun edge(x: Float): Float = when {
@@ -195,7 +195,7 @@ private fun DrawScope.drawSweat(fx: CardFx, top: Float, alpha: Float, radius: Fl
     val k = fx.heat
     val y0 = top + 4f * dp
     if (h - y0 < 20f * dp) return
-    val count = (w * (h - y0) / (dp * dp) / 900f * k).toInt().coerceIn(6, 90)
+    val count = (w * (h - y0) / (dp * dp) / 650f * k).toInt().coerceIn(8, 120)
     for (i in 0 until count) {
         val period = 7f + 9f * hash(seed + i, 30)
         val tt = t + hash(seed + i, 31) * period
@@ -204,7 +204,7 @@ private fun DrawScope.drawSweat(fx: CardFx, top: Float, alpha: Float, radius: Fl
         val id = seed + i * 17 + cycle * 7919
         val x = (4f * dp) + (w - 8f * dp) * hash(id, 32)
         val yStart = y0 + (h - y0 - 6f * dp) * hash(id, 33)
-        val size = (.9f + 2.4f * hash(id, 34) * hash(id, 35)) * dp
+        val size = (1.4f + 3.4f * hash(id, 34) * hash(id, 35)) * dp
         val runs = hash(id, 36) > .8f
         val growPart = if (runs) .55f else .75f
         val r: Float
@@ -219,7 +219,7 @@ private fun DrawScope.drawSweat(fx: CardFx, top: Float, alpha: Float, radius: Fl
             r = size * (1f - .25f * p)
             y = yStart + (h - 3f * dp - yStart) * p * p
             a = 1f - maxOf(0f, (p - .85f) / .15f)
-            drawLine(Color.White.copy(alpha = .12f * alpha * a), Offset(x, yStart), Offset(x, y), r * .9f, StrokeCap.Round)
+            drawLine(Color.White.copy(alpha = .2f * alpha * a), Offset(x, yStart), Offset(x, y), r * .9f, StrokeCap.Round)
         } else {
             val p = (local - growPart) / (1f - growPart)
             r = size * (1f - .5f * p)
@@ -227,9 +227,9 @@ private fun DrawScope.drawSweat(fx: CardFx, top: Float, alpha: Float, radius: Fl
         }
         if (a <= 0f) continue
         a *= alpha
-        drawCircle(Color.White.copy(alpha = .16f * a), r, Offset(x, y))
-        drawCircle(Color.Black.copy(alpha = .10f * a), r * .9f, Offset(x + r * .12f, y + r * .28f), style = androidx.compose.ui.graphics.drawscope.Stroke(r * .22f))
-        drawCircle(Color.White.copy(alpha = .75f * a), r * .32f, Offset(x - r * .35f, y - r * .38f))
+        drawCircle(Color.White.copy(alpha = .26f * a), r, Offset(x, y))
+        drawCircle(Color.Black.copy(alpha = .16f * a), r * .9f, Offset(x + r * .12f, y + r * .28f), style = androidx.compose.ui.graphics.drawscope.Stroke(r * .22f))
+        drawCircle(Color.White.copy(alpha = .9f * a), r * .34f, Offset(x - r * .35f, y - r * .38f))
     }
 }
 
