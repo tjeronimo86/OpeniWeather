@@ -69,33 +69,33 @@ fun DrawScope.drawCardRain(fx: RainFx, top: Float, alpha: Float, radius: Float, 
 
     // Spritzer auf der Oberkante
     if (top < h - radius) {
-        val slots = ceil(w / (26 * dp) * (.35f + rain)).toInt().coerceIn(2, 22)
+        val slots = ceil(w / (20 * dp) * (.4f + rain)).toInt().coerceIn(3, 28)
         for (i in 0 until slots) {
             val period = (.8f + hash(seed + i, 1) * 1.5f) / (.45f + rain)
             val tt = t + hash(seed + i, 2) * period
             val cycle = floor(tt / period).toInt()
             val local = tt / period - cycle
-            if (local > .3f) continue
-            val p = local / .3f
+            if (local > .34f) continue
+            val p = local / .34f
             val x = radius + (w - 2 * radius) * hash(seed * 7 + i * 31 + cycle, 3)
             val fade = (1f - p) * alpha
             // flacher Wasserkranz am Aufschlag
-            val ringW = (2f + 8f * p) * dp
+            val ringW = (3f + 12f * p) * dp
             drawOval(
-                Water.copy(alpha = .45f * fade),
-                Offset(x - ringW / 2, top - .6f * dp),
-                Size(ringW, (1.4f - p) * dp + .4f * dp),
+                Water.copy(alpha = .6f * fade),
+                Offset(x - ringW / 2, top - 1.1f * dp),
+                Size(ringW, (2.2f - 1.4f * p) * dp),
             )
             // kleine Tropfen fliegen im Bogen hoch und fallen zurueck
             val drops = 2 + (hash(i, cycle) * 2.99f).toInt()
             for (k in 0 until drops) {
                 val side = (k - (drops - 1) / 2f) + (hash(i * 13 + k, cycle) - .5f) * .6f
-                val vx = side * (9f + 9f * hash(k, i + cycle)) * dp
-                val vy = (14f + 14f * hash(k + 5, i + cycle)) * dp
+                val vx = side * (12f + 12f * hash(k, i + cycle)) * dp
+                val vy = (20f + 18f * hash(k + 5, i + cycle)) * dp
                 val dx = vx * p
                 val dy = -vy * p + vy * 1.7f * p * p
                 if (dy > 0) continue
-                drawCircle(Water.copy(alpha = .8f * fade), (1.2f - .45f * p) * dp, Offset(x + dx, top + dy))
+                drawCircle(Water.copy(alpha = .95f * fade), (1.9f - .7f * p) * dp, Offset(x + dx, top + dy))
             }
         }
     }
@@ -104,7 +104,7 @@ fun DrawScope.drawCardRain(fx: RainFx, top: Float, alpha: Float, radius: Float, 
     val start = top + radius * .7f
     val length = h - start
     if (length < 24 * dp) return
-    val perSide = (h / (110 * dp) * (.5f + rain * 1.2f)).roundToInt().coerceIn(1, 6)
+    val perSide = (h / (80 * dp) * (.6f + rain * 1.3f)).roundToInt().coerceIn(2, 8)
     for (side in 0..1) {
         for (j in 0 until perSide) {
             val id = seed * 3 + side * 101 + j
@@ -113,8 +113,8 @@ fun DrawScope.drawCardRain(fx: RainFx, top: Float, alpha: Float, radius: Float, 
             val cycle = floor(tt / period).toInt()
             val local = tt / period - cycle
             val run = .82f
-            val rx = if (side == 0) -.7f * dp else w + .7f * dp
-            val head = (1.4f + hash(id, cycle) * .9f) * dp
+            val rx = if (side == 0) .2f * dp else w - .2f * dp
+            val head = (2.2f + hash(id, cycle) * 1.3f) * dp
             if (local < run) {
                 // Haften und Losrutschen: wird schneller, stockt dabei kurz
                 val q = local / run
@@ -123,12 +123,12 @@ fun DrawScope.drawCardRain(fx: RainFx, top: Float, alpha: Float, radius: Float, 
                 val fade = alpha * minOf(1f, q * 8f)
                 // nasse Spur von oben bis zum Tropfen
                 drawLine(
-                    Water.copy(alpha = .10f * fade),
-                    Offset(rx, start), Offset(rx, y), 1.1f * dp, StrokeCap.Round,
+                    Water.copy(alpha = .2f * fade),
+                    Offset(rx, start), Offset(rx, y), 1.6f * dp, StrokeCap.Round,
                 )
-                val trail = (6f + 12f * q) * dp
+                val trail = (10f + 18f * q) * dp
                 drawLine(
-                    Brush.verticalGradient(listOf(Color.Transparent, Water.copy(alpha = .55f * fade)), y - trail, y),
+                    Brush.verticalGradient(listOf(Color.Transparent, Water.copy(alpha = .75f * fade)), y - trail, y),
                     Offset(rx, maxOf(start, y - trail)), Offset(rx, y), head * 1.1f, StrokeCap.Round,
                 )
                 drawCircle(Water.copy(alpha = .85f * fade), head, Offset(rx, y))
