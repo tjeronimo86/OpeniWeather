@@ -2,6 +2,10 @@ name: Emulator-Pruefung
 
 on:
   workflow_dispatch:
+    inputs:
+      script:
+        description: Pruefskript in tools/ci
+        default: verify
   push:
     branches: [ verify ]
 
@@ -45,7 +49,7 @@ jobs:
           disk-size: 6G
           disable-animations: false
           emulator-options: -no-snapshot-save -no-window -gpu swangle_indirect -noaudio -no-boot-anim -dns-server 8.8.8.8
-          script: timeout 3300 bash tools/ci/verify.sh
+          script: timeout 3300 bash tools/ci/${{ inputs.script || 'verify' }}.sh
 
       - name: Ergebnis bereitstellen
         if: always()

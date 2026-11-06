@@ -12,6 +12,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.layout.onSizeChanged
@@ -118,9 +119,24 @@ fun GlassCard(
         Modifier
     }
 
+    val rain = LocalRainFx.current
+    val seed = remember(itemKey) { itemKey.hashCode() }
+    // Aussen ungeschnitten, damit Spritzer ueber die Kante hinausfliegen duerfen
     Box(
         modifier
             .onSizeChanged { cardH = it.height.toFloat() }
+            .drawWithContent {
+                drawContent()
+                if (rain != null) {
+                    val o = overlap()
+                    val fadeZone = (if (headerH > 0f) headerH else radius * 3f)
+                    drawCardRain(rain, o, ((cardH - o) / fadeZone).coerceIn(0f, 1f), radius, seed)
+                }
+            },
+    ) {
+    Box(
+        Modifier
+            .fillMaxSize()
             .graphicsLayer {
                 val o = overlap()
                 clip = true
@@ -147,6 +163,7 @@ fun GlassCard(
                 },
             ) { content() }
         }
+    }
     }
 }
 

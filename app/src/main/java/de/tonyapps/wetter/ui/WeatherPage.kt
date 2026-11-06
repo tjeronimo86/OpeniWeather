@@ -50,6 +50,7 @@ fun WeatherPage(
     onMap: () -> Unit,
     bottomPadding: Dp,
     startItem: Int = 0,
+    rainOverride: Float? = null,
 ) {
     val insets = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val list = rememberLazyListState(initialFirstVisibleItemIndex = startItem)
@@ -60,6 +61,8 @@ fun WeatherPage(
     }
     val tint = remember(weather) { weather?.let { cardTint(skyFor(it)) } ?: Color(0x55123F7D) }
 
+    val rain = rainOverride ?: remember(weather) { weather?.let { skyFor(it).rain } ?: 0f }
+    ProvideRain(rain) {
     CompositionLocalProvider(LocalCardTint provides tint) {
         Box(Modifier.fillMaxSize()) {
             PullToRefreshBox(isRefreshing = refreshing, onRefresh = onRefresh, modifier = Modifier.fillMaxSize()) {
@@ -80,6 +83,7 @@ fun WeatherPage(
             Header(place, weather, insets, scroll, demoName, onCycleDemo)
         }
     }
+}
 }
 
 @Composable

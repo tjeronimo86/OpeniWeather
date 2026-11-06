@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.10 – November 6, 2026
+- When it rains, drops hit the cards, splash off the top edge and run down the sides
+
 ## 1.9 – November 6, 2026
 - The app is now called OpeniWeather
 - New GitHub address: github.com/tjeronimo86/OpeniWeather

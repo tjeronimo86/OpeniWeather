@@ -37,7 +37,7 @@ class DebugShotActivity : ComponentActivity() {
                     WeatherPage(
                         place = place, weather = weather, errorText = null, refreshing = false, onRefresh = {},
                         demoName = null, onCycleDemo = {}, onDetail = {}, onMap = {},
-                        bottomPadding = 20.dp, startItem = scroll,
+                        bottomPadding = 20.dp, startItem = scroll, rainOverride = sky.rain,
                     )
                 }
             }

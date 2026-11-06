@@ -135,6 +135,7 @@ fun WetterApp(openPlace: String? = null, vm: WeatherViewModel = viewModel()) {
                     onDetail = { detail = it },
                     onMap = { mapPlace = place },
                     bottomPadding = barHeight + bottomInset,
+                    rainOverride = if (demo >= 0) DEMO_SCENES[demo].second.rain else null,
                 )
             }
 

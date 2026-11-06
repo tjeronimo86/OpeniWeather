@@ -1,5 +1,8 @@
 # Update-Verlauf
 
+## 1.10 – 6. November 2026
+- Bei Regen prasseln Tropfen auf die Karten, spritzen an der Oberkante hoch und rinnen an den Seiten herunter
+
 ## 1.9 – 6. November 2026
 - Die App heißt jetzt OpeniWeather
 - Neue Adresse auf GitHub: github.com/tjeronimo86/OpeniWeather
