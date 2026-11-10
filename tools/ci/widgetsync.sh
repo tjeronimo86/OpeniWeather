@@ -22,7 +22,10 @@ sleep 70
 for n in 1 2 3; do shot "a-regen-$n"; sleep 1; done
 adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_SCENE --ei scene 0
 sleep 70
-for n in $(seq 1 14); do shot "b-klar-$n"; sleep .4; done
+# Schleife vermessen: Bilder so dicht wie moeglich ueber zwei Durchlaeufe
+adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_SCENE --ei scene 1
+sleep 70
+for n in $(seq -w 1 60); do shot "c-loop-$n"; done
 timeout 60 adb logcat -d -s AndroidRuntime:E Widgets:W > "$OUT/log.txt"
 (cd out && zip -qr verify.zip verify)
 exit 0

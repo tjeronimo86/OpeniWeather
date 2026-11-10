@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.13 – November 10, 2026
+- Widget clouds loop without a hitch: motion used to pause briefly at the end of the loop
+
 ## 1.12 – November 10, 2026
 - Widgets no longer show an old sky: after an update, frames from the previous weather kept playing, such as rain after it had stopped
 

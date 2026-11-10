@@ -36,8 +36,9 @@ object SkyBitmap {
      * Eine nahtlose Wolkenschleife, die Wolken ziehen dabei immer in dieselbe Richtung.
      * Der Shader mischt jeden Zeitpunkt mit demselben Zeitpunkt eine Schleife frueher
      * (uLoopW), vor der Wolkenkante: Jedes Bild bleibt scharf und das letzte fuehrt genau
-     * auf das erste zu. Das erste Bild steht am Ende noch einmal, damit auch dieser
-     * Uebergang weich eingeblendet wird; dieselbe Bitmap kostet keinen Speicher.
+     * auf das erste zu. Der ViewFlipper blendet auch beim Sprung vom letzten aufs erste Bild
+     * weich ueber; das erste Bild darf deshalb nicht noch einmal am Ende stehen, sonst steht
+     * die Bewegung dort eine Wechselzeit lang still.
      */
     fun clouds(context: Context, width: Int, height: Int, p: SkyParams): List<Bitmap> = runCatching {
         Session(context, width, height, p).use { session ->
@@ -45,7 +46,7 @@ object SkyBitmap {
                 val w = i / SKY_FRAMES.toFloat()
                 session.frame(41f + w * LOOP, w)
             }
-            frames + frames.first()
+            frames
         }
     }.getOrDefault(emptyList())
 

@@ -1,5 +1,8 @@
 # Update-Verlauf
 
+## 1.13 – 10. November 2026
+- Widget-Wolken laufen ohne Haken durch: Am Ende der Schleife stand die Bewegung kurz still
+
 ## 1.12 – 10. November 2026
 - Widgets zeigen keinen alten Himmel mehr: Nach einem Update liefen bisher die Bilder vom vorherigen Wetter mit, etwa Regen, obwohl es nicht mehr regnet
 
