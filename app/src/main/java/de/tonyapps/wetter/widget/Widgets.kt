@@ -102,6 +102,10 @@ object Widgets {
         val layers = renderer.layers(weather, width, height, debugSky)
         if (layers.clouds.isEmpty()) return stillViews(context, renderer, style, place, weather, width, height)
         val views = RemoteViews(context.packageName, R.layout.widget_root)
+        // Android spielt ein Update auf das vorhandene Widget auf. Ohne Leeren wuerden die
+        // neuen Bilder an die alten angehaengt, und der Himmel von gestern liefe weiter mit.
+        views.removeAllViews(R.id.widget_sky)
+        views.removeAllViews(R.id.widget_precip)
         layers.clouds.forEach { views.addView(R.id.widget_sky, frameView(context, it)) }
         layers.precip?.let { loop ->
             loop.frames.forEach { views.addView(R.id.widget_precip, frameView(context, it)) }
@@ -127,6 +131,8 @@ object Widgets {
         height: Int,
     ): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_root)
+        views.removeAllViews(R.id.widget_sky)
+        views.removeAllViews(R.id.widget_precip)
         views.setImageViewBitmap(R.id.widget_image, renderer.render(style, place, weather, width, height))
         return views
     }

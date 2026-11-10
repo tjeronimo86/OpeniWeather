@@ -1,5 +1,8 @@
 # Update-Verlauf
 
+## 1.12 – 10. November 2026
+- Widgets zeigen keinen alten Himmel mehr: Nach einem Update liefen bisher die Bilder vom vorherigen Wetter mit, etwa Regen, obwohl es nicht mehr regnet
+
 ## 1.11 – 6. November 2026
 - Bei Frost hängen Eiszapfen an der Unterkante der Karten
 - Bei Schnee bleibt eine Schneeschicht auf der Oberkante liegen

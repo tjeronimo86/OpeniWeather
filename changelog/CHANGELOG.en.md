@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.12 – November 10, 2026
+- Widgets no longer show an old sky: after an update, frames from the previous weather kept playing, such as rain after it had stopped
+
 ## 1.11 – November 6, 2026
 - In frost, icicles hang from the bottom edge of the cards
 - In snow, a layer of snow settles on the top edge
