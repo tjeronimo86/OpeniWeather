@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.14 – November 10, 2026
+- Widget clouds no longer jump at the end of the loop: the transition back to the first frame now fades as smoothly as all others
+
 ## 1.13 – November 10, 2026
 - Widget clouds loop without a hitch: motion used to pause briefly at the end of the loop
 

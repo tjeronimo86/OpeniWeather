@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Altes Bild bleibt deckend darunter stehen, bis das neue ganz da ist.
-     Ohne diese Animation verschwindet es sofort und der Hintergrund schimmert durch. -->
+<!-- Altes Himmelsbild blendet zugleich aus. Beim Sprung vom letzten aufs erste Bild liegt
+     das neue Bild unter dem alten; ohne Ausblenden waere der Wechsel unsichtbar und das
+     alte verschwaende am Ende schlagartig. -->
 <alpha xmlns:android="http://schemas.android.com/apk/res/android"
     android:duration="@integer/sky_flip_ms"
     android:fromAlpha="1"
-    android:toAlpha="1" />
+    android:interpolator="@android:anim/linear_interpolator"
+    android:toAlpha="0" />

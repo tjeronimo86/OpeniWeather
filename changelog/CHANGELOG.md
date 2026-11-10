@@ -1,5 +1,8 @@
 # Update-Verlauf
 
+## 1.14 – 10. November 2026
+- Widget-Wolken springen nicht mehr am Ende der Schleife: Der Übergang zurück zum ersten Bild blendet jetzt genauso weich über wie alle anderen
+
 ## 1.13 – 10. November 2026
 - Widget-Wolken laufen ohne Haken durch: Am Ende der Schleife stand die Bewegung kurz still
 

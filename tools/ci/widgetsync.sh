@@ -22,10 +22,12 @@ sleep 70
 for n in 1 2 3; do shot "a-regen-$n"; sleep 1; done
 adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_SCENE --ei scene 0
 sleep 70
-# Schleife vermessen: Bilder so dicht wie moeglich ueber zwei Durchlaeufe
+# Schleife vermessen: echte Bildschirmaufnahme ueber gut zwei Durchlaeufe
 adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_SCENE --ei scene 1
 sleep 70
-for n in $(seq -w 1 60); do shot "c-loop-$n"; done
+adb shell screenrecord --time-limit 16 --size 720x1600 /sdcard/loop.mp4
+sleep 2
+adb pull /sdcard/loop.mp4 "$OUT/loop.mp4"
 timeout 60 adb logcat -d -s AndroidRuntime:E Widgets:W > "$OUT/log.txt"
 (cd out && zip -qr verify.zip verify)
 exit 0

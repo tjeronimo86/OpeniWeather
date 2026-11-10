@@ -107,6 +107,8 @@ object Widgets {
         views.removeAllViews(R.id.widget_sky)
         views.removeAllViews(R.id.widget_precip)
         layers.clouds.forEach { views.addView(R.id.widget_sky, frameView(context, it)) }
+        // Dieselbe Bitmap wie in der Schleife: RemoteViews speichert sie nur einmal
+        views.setImageViewBitmap(R.id.widget_sky_under, layers.clouds[layers.clouds.size / 2])
         layers.precip?.let { loop ->
             loop.frames.forEach { views.addView(R.id.widget_precip, frameView(context, it)) }
             views.setInt(R.id.widget_precip, "setFlipInterval", loop.intervalMs)
@@ -133,6 +135,7 @@ object Widgets {
         val views = RemoteViews(context.packageName, R.layout.widget_root)
         views.removeAllViews(R.id.widget_sky)
         views.removeAllViews(R.id.widget_precip)
+        views.setImageViewResource(R.id.widget_sky_under, 0)
         views.setImageViewBitmap(R.id.widget_image, renderer.render(style, place, weather, width, height))
         return views
     }
