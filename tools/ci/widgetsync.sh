@@ -22,13 +22,14 @@ sleep 70
 for n in 1 2 3; do shot "a-regen-$n"; sleep 1; done
 adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_SCENE --ei scene 0
 sleep 70
-# Schleife vermessen: Aufnahme ueber fast drei Minuten, darin liegt auch das Listenende
-adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_SCENE --ei scene 2
-sleep 80
-adb shell screenrecord --time-limit 175 --size 360x800 --bit-rate 2000000 /sdcard/loop.mp4
+# Schleife vermessen: Szene direkt vor der Aufnahme setzen, sonst ueberschreibt echtes Wetter sie
+for k in 1 2; do
+  adb shell am broadcast -n $PKG/.DebugRenderReceiver -a $PKG.DEBUG_SCENE --ei scene 2
+  sleep 45
+done
+adb shell screenrecord --time-limit 60 --size 540x1200 --bit-rate 6000000 /sdcard/loop.mp4
 sleep 2
 adb pull /sdcard/loop.mp4 "$OUT/loop.mp4"
-adb shell dumpsys gfxinfo com.android.launcher3 | head -40 > "$OUT/launcher-gfx.txt"
 timeout 60 adb logcat -d -s AndroidRuntime:E Widgets:W > "$OUT/log.txt"
 (cd out && zip -qr verify.zip verify)
 exit 0
