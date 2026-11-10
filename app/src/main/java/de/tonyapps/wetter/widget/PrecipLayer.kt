@@ -104,7 +104,6 @@ object PrecipLayer {
 
     /** Drei Durchlaeufe Regen, im mittleren ein Blitz mit Nachleuchten. */
     private fun withLightning(rain: List<Bitmap>, width: Int, height: Int, unit: Float): List<Bitmap> {
-        val base = rain[0]
         val bolt = Path()
         val random = Random(11)
         var x = width * (.3f + random.nextFloat() * .4f)
@@ -116,7 +115,7 @@ object PrecipLayer {
             x += width * (random.nextFloat() - .5f) * .09f
             bolt.lineTo(x, y)
         }
-        fun flash(sky: Int, boltAlpha: Int): Bitmap {
+        fun flash(base: Bitmap, sky: Int, boltAlpha: Int): Bitmap {
             val bitmap = base.copy(Bitmap.Config.ARGB_8888, true)
             val c = Canvas(bitmap)
             c.drawColor(0xC8D2FF or (sky shl 24))
@@ -137,7 +136,8 @@ object PrecipLayer {
             c.drawPath(bolt, core)
             return bitmap
         }
-        val strike = listOf(flash(120, 255), flash(40, 120), flash(95, 235), flash(26, 60))
+        // Der Regen laeuft unter dem Blitz weiter: Bilder 3 bis 6 der Regenschleife
+        val strike = listOf(flash(rain[3], 120, 255), flash(rain[4], 40, 120), flash(rain[5], 95, 235), flash(rain[6], 26, 60))
         return rain + rain.subList(0, 3) + strike + rain.subList(7, 10) + rain + rain
     }
 }

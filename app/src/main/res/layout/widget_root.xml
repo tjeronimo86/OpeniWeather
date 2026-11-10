@@ -11,15 +11,6 @@
          Beide pausieren von selbst, wenn der Startbildschirm nicht sichtbar ist.
          Der Himmel blendet jedes Bild ueber die volle Wechselzeit ins naechste,
          das alte bleibt so lange stehen: so fliesst die Bewegung statt zu springen. -->
-    <!-- Ruhendes Wolkenbild unter der Schleife: Waehrend zwei Bilder ueberblenden,
-         scheint hier statt der Hintergrundfarbe ein fast gleicher Himmel durch. -->
-    <ImageView
-        android:id="@+id/widget_sky_under"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:importantForAccessibility="no"
-        android:scaleType="fitXY" />
-
     <ViewFlipper
         android:id="@+id/widget_sky"
         android:layout_width="match_parent"

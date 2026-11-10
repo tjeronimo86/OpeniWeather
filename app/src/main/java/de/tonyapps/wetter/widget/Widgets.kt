@@ -30,6 +30,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 private const val MAX_AGE_MS = 20 * 60 * 1000L
 
+/** Durchlaeufe der Wolkenbilder im ViewFlipper: 24 x 6,3 s, also gut 2,5 Minuten ohne Sprung. */
+private const val SKY_REPEATS = 24
+
 object Widgets {
     private val lock = Mutex()
 
@@ -106,9 +109,16 @@ object Widgets {
         // neuen Bilder an die alten angehaengt, und der Himmel von gestern liefe weiter mit.
         views.removeAllViews(R.id.widget_sky)
         views.removeAllViews(R.id.widget_precip)
-        layers.clouds.forEach { views.addView(R.id.widget_sky, frameView(context, it)) }
-        // Dieselbe Bitmap wie in der Schleife: RemoteViews speichert sie nur einmal
-        views.setImageViewBitmap(R.id.widget_sky_under, layers.clouds[layers.clouds.size / 2])
+        // Der ViewFlipper blendet nur sauber, wenn das neue Bild ueber dem alten liegt. Beim
+        // Sprung vom letzten aufs erste Bild liegt es darunter. Deshalb stehen die Bilder
+        // mehrfach hintereinander: Jeder Durchlauf geht als normaler Wechsel in den naechsten
+        // ueber. RemoteViews speichert jede Bitmap nur einmal, das kostet keinen Speicher.
+        // Ganz am Ende steht das erste Bild noch einmal: Der seltene echte Sprung fuehrt dann
+        // von einem Bild auf dasselbe Bild und faellt nur als kurze Pause auf.
+        repeat(SKY_REPEATS) {
+            layers.clouds.forEach { views.addView(R.id.widget_sky, frameView(context, it)) }
+        }
+        views.addView(R.id.widget_sky, frameView(context, layers.clouds.first()))
         layers.precip?.let { loop ->
             loop.frames.forEach { views.addView(R.id.widget_precip, frameView(context, it)) }
             views.setInt(R.id.widget_precip, "setFlipInterval", loop.intervalMs)
@@ -135,7 +145,6 @@ object Widgets {
         val views = RemoteViews(context.packageName, R.layout.widget_root)
         views.removeAllViews(R.id.widget_sky)
         views.removeAllViews(R.id.widget_precip)
-        views.setImageViewResource(R.id.widget_sky_under, 0)
         views.setImageViewBitmap(R.id.widget_image, renderer.render(style, place, weather, width, height))
         return views
     }

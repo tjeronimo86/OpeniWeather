@@ -1,5 +1,9 @@
 # Update-Verlauf
 
+## 1.15 – 10. November 2026
+- Widget-Schleifen neu aufgebaut: Die Wolken ziehen gleichmäßig durch, ohne Pulsieren und ohne Sprung am Schleifenende
+- Bei Gewitter läuft der Regen unter dem Blitz weiter, statt kurz zu springen
+
 ## 1.14 – 10. November 2026
 - Widget-Wolken springen nicht mehr am Ende der Schleife: Der Übergang zurück zum ersten Bild blendet jetzt genauso weich über wie alle anderen
 

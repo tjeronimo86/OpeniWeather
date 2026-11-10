@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.15 – November 10, 2026
+- Widget loops rebuilt: clouds drift evenly, with no pulsing and no jump at the end of the loop
+- In thunderstorms, rain keeps falling under the lightning instead of jumping briefly
+
 ## 1.14 – November 10, 2026
 - Widget clouds no longer jump at the end of the loop: the transition back to the first frame now fades as smoothly as all others
 
