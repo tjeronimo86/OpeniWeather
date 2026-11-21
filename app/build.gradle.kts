@@ -15,7 +15,7 @@ android {
         targetSdk = 35
         // Die Build-Nummer aus GitHub Actions: Anzeige in der App und Release passen zusammen
         versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 17
-        versionName = "1.15"
+        versionName = "1.16"
     }
 
     // Fester Schluessel im Repo: Jeder CI-Build traegt dieselbe Signatur,

@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.widget.RemoteViews
 import de.tonyapps.wetter.MainActivity
@@ -20,6 +21,8 @@ import de.tonyapps.wetter.data.Weather
 import de.tonyapps.wetter.data.conditionText
 import de.tonyapps.wetter.data.tr
 import de.tonyapps.wetter.sky.SkyParams
+import de.tonyapps.wetter.sky.skyFor
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -75,19 +78,39 @@ object Widgets {
                 val options = manager.getAppWidgetOptions(id)
                 val width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it > 0 } ?: style.defaultW
                 val height = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it > 0 } ?: style.defaultH
-                val views = animatedViews(context, renderer, style, place, weather, width, height)
+                val sky = calmSky(debugSky ?: weather?.let { skyFor(it) } ?: SkyParams(cloud = .3f))
                 val description = weather?.let {
                     tr(R.string.w_desc, place.name, it.current.temp.toInt(), conditionText(it.current.code, it.current.isDay, it.current.cloud))
                 } ?: place.name
+                // Gleicher Himmel wie beim letzten Mal: nur Text und Symbole tauschen. Ein neuer
+                // Satz Wolkenbilder startet die Schleife immer beim ersten Bild, und das sieht man
+                // als harten Schnitt mitten in der laufenden Bewegung. Der Startbildschirm holt
+                // Updates aus dem Standby gesammelt nach, deshalb fiel es genau dort auf.
+                val signature = skySignature(context, style, place, width, height, sky)
+                if (store.widgetSky(id) == signature) {
+                    val partial = RemoteViews(context.packageName, R.layout.widget_root)
+                    partial.setImageViewBitmap(R.id.widget_image, renderer.overlay(style, place, weather, width, height, sky))
+                    decorate(context, partial, place, id, description)
+                    try {
+                        manager.partiallyUpdateAppWidget(id, partial)
+                        return@forEach
+                    } catch (e: RuntimeException) {
+                        Log.w("Widgets", "Teil-Update fehlgeschlagen, baue neu", e)
+                    }
+                }
+                val animated = animatedViews(context, renderer, style, place, weather, width, height, sky)
+                val views = animated ?: stillViews(context, renderer, style, place, weather, width, height)
                 decorate(context, views, place, id, description)
                 try {
                     manager.updateAppWidget(id, views)
+                    store.setWidgetSky(id, if (animated != null) signature else null)
                 } catch (e: RuntimeException) {
                     // Android begrenzt den Bildspeicher pro Widget: dann eben als Standbild
                     Log.w("Widgets", "Schleife zu gross", e)
                     val still = stillViews(context, renderer, style, place, weather, width, height)
                     decorate(context, still, place, id, description)
                     manager.updateAppWidget(id, still)
+                    store.setWidgetSky(id, null)
                 }
             }
         }
@@ -101,9 +124,10 @@ object Widgets {
         weather: Weather?,
         width: Int,
         height: Int,
-    ): RemoteViews {
-        val layers = renderer.layers(weather, width, height, debugSky)
-        if (layers.clouds.isEmpty()) return stillViews(context, renderer, style, place, weather, width, height)
+        sky: SkyParams,
+    ): RemoteViews? {
+        val layers = renderer.layers(weather, width, height, sky)
+        if (layers.clouds.isEmpty()) return null
         val views = RemoteViews(context.packageName, R.layout.widget_root)
         // Android spielt ein Update auf das vorhandene Widget auf. Ohne Leeren wuerden die
         // neuen Bilder an die alten angehaengt, und der Himmel von gestern liefe weiter mit.
@@ -123,8 +147,44 @@ object Widgets {
             loop.frames.forEach { views.addView(R.id.widget_precip, frameView(context, it)) }
             views.setInt(R.id.widget_precip, "setFlipInterval", loop.intervalMs)
         }
-        views.setImageViewBitmap(R.id.widget_image, renderer.overlay(style, place, weather, width, height, debugSky))
+        views.setImageViewBitmap(R.id.widget_image, renderer.overlay(style, place, weather, width, height, sky))
         return views
+    }
+
+    /**
+     * Rundet die Himmelswerte grob. Die Sonne wandert sonst mit jeder Minute ein Stueck weiter,
+     * und jedes Update braeuchte neue Wolkenbilder. So wird die Schleife nur getauscht, wenn
+     * sich der Himmel sichtbar aendert: andere Bewoelkung, Regen, Daemmerung, ein bis zwei
+     * Stunden Sonnenlauf.
+     */
+    private fun calmSky(p: SkyParams): SkyParams {
+        fun q(v: Float, step: Float) = (v / step).roundToInt() * step
+        return SkyParams(
+            cloud = q(p.cloud, .1f),
+            grey = q(p.grey, .1f),
+            rain = q(p.rain, .1f),
+            snow = q(p.snow, .1f),
+            fog = q(p.fog, .1f),
+            storm = q(p.storm, .25f),
+            day = q(p.day, .1f),
+            dusk = q(p.dusk, .1f),
+            sunX = q(p.sunX, .1f),
+            sunY = q(p.sunY, .1f),
+            moon = q(p.moon, .05f),
+            sunVis = q(p.sunVis, .25f),
+            moonUp = q(p.moonUp, 1f),
+        )
+    }
+
+    /**
+     * Alles, was die Wolkenschleife bestimmt. Neustart und App-Update gehoeren dazu: Danach
+     * kennt Android das alte Widget nicht mehr, und ein Teil-Update liefe ins Leere.
+     */
+    private fun skySignature(context: Context, style: WidgetStyle, place: Place, width: Int, height: Int, sky: SkyParams): String {
+        val boot = Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT, 0)
+        val installed = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime }.getOrDefault(0L)
+        val night = context.resources.configuration.uiMode
+        return "$boot|$installed|$night|$style|${place.id}|${width}x$height|$sky"
     }
 
     private fun frameView(context: Context, bitmap: Bitmap): RemoteViews {

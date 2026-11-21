@@ -1,5 +1,8 @@
 # Update-Verlauf
 
+## 1.16 – 21. November 2026
+- Widget-Wolken werden nach dem Standby nicht mehr abgehackt: Die Schleife läuft weiter, solange sich der Himmel nicht sichtbar ändert; Temperatur und Text werden trotzdem aktualisiert
+
 ## 1.15 – 10. November 2026
 - Widget-Schleifen neu aufgebaut: Die Wolken ziehen gleichmäßig durch, ohne Pulsieren und ohne Sprung am Schleifenende
 - Bei Gewitter läuft der Regen unter dem Blitz weiter, statt kurz zu springen

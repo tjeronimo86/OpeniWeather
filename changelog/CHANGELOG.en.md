@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.16 – November 21, 2026
+- Widget clouds no longer cut off after standby: the loop keeps running as long as the sky doesn't visibly change; temperature and text still update
+
 ## 1.15 – November 10, 2026
 - Widget loops rebuilt: clouds drift evenly, with no pulsing and no jump at the end of the loop
 - In thunderstorms, rain keeps falling under the lightning instead of jumping briefly

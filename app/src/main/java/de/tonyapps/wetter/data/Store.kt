@@ -78,6 +78,13 @@ class Store(context: Context) {
     }
 
     fun dropWidget(widgetId: Int) {
-        prefs.edit().remove("widget-$widgetId").apply()
+        prefs.edit().remove("widget-$widgetId").remove("widget-sky-$widgetId").apply()
+    }
+
+    /** Womit die laufende Wolkenschleife des Widgets gebaut wurde; null heisst neu bauen. */
+    fun widgetSky(widgetId: Int): String? = prefs.getString("widget-sky-$widgetId", null)
+
+    fun setWidgetSky(widgetId: Int, signature: String?) {
+        prefs.edit().putString("widget-sky-$widgetId", signature).commit()
     }
 }
